@@ -2,9 +2,11 @@ name: PR Notification
 
 on:
   workflow_call:
-    secrets:
-      DISCORD_WEBHOOK:
-        description: "Discord webhook URL"
+    inputs:
+      DISCORD_WEBHOOK_REF:
+        type: string
+        description: 'The reference to the Discord webhook'
+        required: true
 
 jobs:
   notify:
@@ -18,7 +20,7 @@ jobs:
           export-env: true
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_WEBHOOK: ${{ inputs.DISCORD_WEBHOOK_REF }}
 
       - name: Send Discord notification
         uses: cabrera-evil/discord-notify-action@1.0.2
