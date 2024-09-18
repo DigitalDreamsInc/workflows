@@ -1,0 +1,33 @@
+name: PR Notification
+
+on:
+  workflow_call:
+    secrets:
+      DISCORD_WEBHOOK:
+        description: "Discord webhook URL"
+
+jobs:
+  notify:
+    name: Notify PR Status
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Load deployment secrets from 1Password
+        uses: 1password/load-secrets-action@v1
+        with:
+          export-env: true
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+
+      - name: Send Discord notification
+        uses: cabrera-evil/discord-notify-action@1.0.2
+        with:
+          webhook_url: ${{ env.DISCORD_WEBHOOK }}
+          title: "PR notification: ${{ github.event.repository.name }}"
+          description: |
+            **Status:** ${{ github.event.pull_request.state }}
+            **Issue:** ${{ github.event.pull_request.title }}
+            **Author:** ${{ github.event.pull_request.user.login }}
+          include_image: true
+          title_url: ${{ github.event.pull_request.html_url }}
