@@ -1,0 +1,94 @@
+name: K8s Deployment
+
+on:
+  workflow_call:
+    inputs:
+      DISCORD_WEBHOOK_REF:
+        type: string
+        description: The reference to the Discord webhook
+        required: false
+      SECRET_REF:
+        type: string
+        description: The reference to the Kubernetes secret
+        required: false
+        default: op://kubernetes/${{ github.event.repository.name }}/secret
+      KUBECONFIG_REF:
+        type: string
+        description: The reference to the Kubernetes configuration
+        required: false
+        default: op://kubernetes/kubeconfig/master
+
+jobs:
+  deploy:
+    name: Deploy to Kubernetes
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Load secrets from 1Password
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: true
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          DISCORD_WEBHOOK: ${{ inputs.DISCORD_WEBHOOK_REF}}
+
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Kustomize
+        working-directory: k8s
+        run: |
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+
+      - name: Prepare Secrets
+        working-directory: k8s
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          SECRET: ${{ secrets.SECRET_REF }}
+        run: |
+          op read "$SECRET" | base64 --decode > secret.yaml
+
+      - name: Set Docker Image in Kustomize
+        working-directory: k8s
+        run: |
+          kustomize edit set image "${{ env.DOCKER_USERNAME }}/${{ github.event.repository.name }}=${{ env.DOCKER_USERNAME }}/${{ github.event.repository.name }}:${{ github.sha }}"
+
+      - name: Configure Kubernetes Access
+        working-directory: k8s
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          KUBECONFIG: ${{ inputs.KUBECONFIG_REF }}
+        run: |
+          mkdir -p ~/.kube
+          op read "$KUBECONFIG" | base64 --decode > ~/.kube/config
+
+      - name: Apply Kubernetes Manifests
+        working-directory: k8s
+        run: |
+          kustomize build . | kubectl apply -f -
+
+      - name: Set Notification Variables
+        id: notification_vars
+        if: always() && inputs.DISCORD_WEBHOOK_REF
+        run: |-
+          case "${{ job.status }}" in
+            success) echo "color=#17C964" >> $GITHUB_OUTPUT ;;
+            failure) echo "color=#F31260" >> $GITHUB_OUTPUT ;;
+            *)       echo "color=#FFA500" >> $GITHUB_OUTPUT ;;
+          esac
+
+      - name: Notify Discord
+        if: always() && inputs.DISCORD_WEBHOOK_REF
+        uses: cabrera-evil/discord-notify-action@1.0.2
+        with:
+          webhook_url: ${{ env.DISCORD_WEBHOOK }}
+          title: "Deployment notification: ${{ github.event.repository.name }}"
+          description: |
+            **Status:** ${{ job.status }}
+            **Author:** ${{ github.actor }}
+          color: "${{ steps.notification_vars.outputs.color }}"
+          include_image: "true"
+          title_url: "https://github.com/${{ github.repository }}/commit/${{ github.sha }}"
