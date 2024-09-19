@@ -5,7 +5,7 @@ on:
       STAGE:
         type: string
         description: The stage to deploy to
-        required: true
+        required: false
         default: production
       VERCEL_ORG_ID_REF:
         type: string
