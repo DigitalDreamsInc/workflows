@@ -12,12 +12,12 @@ on:
         type: string
         description: The reference to the Kubernetes secret
         required: false
-        default: op://kubernetes/${{ github.event.repository.name }}/${{ inputs.STAGE }}
+        default: op://kubernetes/${{ github.event.repository.name }}
       KUBECONFIG_REF:
         type: string
         description: The reference to the Kubernetes configuration
         required: false
-        default: op://kubernetes/kubeconfig/${{ inputs.STAGE }}
+        default: op://kubernetes/kubeconfig
 
 jobs:
   deploy:
@@ -38,7 +38,7 @@ jobs:
         working-directory: k8s
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          SECRET: ${{ inputs.SECRET_REF }}
+          SECRET: ${{ inputs.SECRET_REF }}/${{ inputs.STAGE }}
         run: |
           op read "$SECRET" | base64 --decode > secret.yaml
 
@@ -51,7 +51,7 @@ jobs:
         working-directory: k8s
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          KUBECONFIG: ${{ inputs.KUBECONFIG_REF }}
+          KUBECONFIG: ${{ inputs.KUBECONFIG_REF }}/${{ inputs.STAGE }}
         run: |
           mkdir -p ~/.kube
           op read "$KUBECONFIG" | base64 --decode > ~/.kube/config
