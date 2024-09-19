@@ -18,14 +18,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Load secrets from 1Password
-        uses: 1password/load-secrets-action@v2
-        with:
-          export-env: true
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          DISCORD_WEBHOOK: ${{ inputs.DISCORD_WEBHOOK_REF}}
-
       - name: Install 1Password CLI
         uses: 1password/install-cli-action@v1
 
