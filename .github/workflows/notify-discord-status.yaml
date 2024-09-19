@@ -9,7 +9,7 @@ on:
         default: op://actions/Discord/webhook
 
 jobs:
-  deploy:
+  notify:
     runs-on: ubuntu-latest
     steps:
       - name: Load secrets from 1Password
