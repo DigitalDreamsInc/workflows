@@ -33,7 +33,7 @@ jobs:
         working-directory: k8s
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          SECRET: ${{ secrets.SECRET_REF }}
+          SECRET: ${{ inputs.SECRET_REF }}
         run: |
           op read "$SECRET" | base64 --decode > secret.yaml
 
