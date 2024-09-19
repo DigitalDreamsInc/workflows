@@ -3,10 +3,6 @@ name: K8s Deployment
 on:
   workflow_call:
     inputs:
-      DISCORD_WEBHOOK_REF:
-        type: string
-        description: The reference to the Discord webhook
-        required: false
       SECRET_REF:
         type: string
         description: The reference to the Kubernetes secret
@@ -16,7 +12,12 @@ on:
         type: string
         description: The reference to the Kubernetes configuration
         required: false
-        default: op://kubernetes/kubeconfig/master
+        default: op://kubernetes/kubeconfig/prod
+      DISCORD_WEBHOOK_REF:
+        type: string
+        description: The reference to the Discord webhook
+        required: false
+        default: op://actions/Discord/webhook
 
 jobs:
   deploy:
@@ -72,7 +73,7 @@ jobs:
 
       - name: Set Notification Variables
         id: notification_vars
-        if: always() && inputs.DISCORD_WEBHOOK_REF
+        if: always()
         run: |-
           case "${{ job.status }}" in
             success) echo "color=#17C964" >> $GITHUB_OUTPUT ;;
@@ -81,7 +82,7 @@ jobs:
           esac
 
       - name: Notify Discord
-        if: always() && inputs.DISCORD_WEBHOOK_REF
+        if: always()
         uses: cabrera-evil/discord-notify-action@1.0.2
         with:
           webhook_url: ${{ env.DISCORD_WEBHOOK }}

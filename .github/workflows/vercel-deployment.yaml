@@ -1,6 +1,27 @@
-name: Vercel Preview Deployment
+name: Vercel Deployment
 on:
   workflow_call:
+    inputs:
+      VERCEL_STAGE:
+        type: string
+        description: 'The Vercel stage to deploy to'
+        required: true
+        default: preview
+      VERCEL_ORG_ID_REF:
+        type: string
+        description: 'The reference to the Vercel organization ID'
+        required: false
+        default: op://Vercel/cabrera-evil/organization-id
+      VERCEL_PROJECT_ID_REF:
+        type: string
+        description: 'The reference to the Vercel project ID'
+        required: false
+        default: op://Vercel/${{ github.event.repository.name }}/project-id
+      DISCORD_WEBHOOK_REF:
+        type: string
+        description: 'The reference to the Discord webhook'
+        required: false
+        default: op://actions/Discord/webhook
 
 jobs:
   deploy:
@@ -12,9 +33,9 @@ jobs:
           export-env: true
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          DISCORD_WEBHOOK: op://devops/Discord/credential
-          VERCEL_ORG_ID: op://Vercel/cabrera-evil/organization-id
-          VERCEL_PROJECT_ID: op://Vercel/${{ github.event.repository.name }}/project-id
+          DISCORD_WEBHOOK: ${{ inputs.DISCORD_WEBHOOK_REF }}
+          VERCEL_ORG_ID: ${{ inputs.VERCEL_ORG_ID_REF }}
+          VERCEL_PROJECT_ID: ${{ inputs.VERCEL_PROJECT_ID_REF }}
 
       - name: Checkout code
         uses: actions/checkout@v3
@@ -31,13 +52,13 @@ jobs:
         run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=${{ inputs.VERCEL_STAGE }} --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Build Project Artifacts
-        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel build ${{ inputs.VERCEL_STAGE == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy Project Artifacts to Vercel
-        run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel deploy --prebuilt ${{ inputs.VERCEL_STAGE == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Set Notification Variables
         id: notification_vars

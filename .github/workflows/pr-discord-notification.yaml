@@ -6,7 +6,8 @@ on:
       DISCORD_WEBHOOK_REF:
         type: string
         description: 'The reference to the Discord webhook'
-        required: true
+        required: false
+        default: op://actions/Discord/webhook
 
 jobs:
   notify:
