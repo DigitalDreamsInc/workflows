@@ -4,24 +4,19 @@ on:
     inputs:
       VERCEL_STAGE:
         type: string
-        description: 'The Vercel stage to deploy to'
+        description: "The Vercel stage to deploy to"
         required: true
         default: preview
       VERCEL_ORG_ID_REF:
         type: string
-        description: 'The reference to the Vercel organization ID'
+        description: "The reference to the Vercel organization ID"
         required: false
         default: op://Vercel/cabrera-evil/organization-id
       VERCEL_PROJECT_ID_REF:
         type: string
-        description: 'The reference to the Vercel project ID'
+        description: "The reference to the Vercel project ID"
         required: false
         default: op://Vercel/${{ github.event.repository.name }}/project-id
-      DISCORD_WEBHOOK_REF:
-        type: string
-        description: 'The reference to the Discord webhook'
-        required: false
-        default: op://actions/Discord/webhook
 
 jobs:
   deploy:
@@ -43,7 +38,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Install Vercel and PNPM
         run: npm install --global vercel@latest pnpm@latest
@@ -59,26 +54,3 @@ jobs:
 
       - name: Deploy Project Artifacts to Vercel
         run: vercel deploy --prebuilt ${{ inputs.VERCEL_STAGE == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Set Notification Variables
-        id: notification_vars
-        if: always()
-        run: |-
-          case "${{ job.status }}" in
-            success) echo "color=#17C964" >> $GITHUB_OUTPUT ;;
-            failure) echo "color=#F31260" >> $GITHUB_OUTPUT ;;
-            *)       echo "color=#FFA500" >> $GITHUB_OUTPUT ;;
-          esac
-
-      - name: Notify Discord
-        if: always()
-        uses: cabrera-evil/discord-notify-action@1.0.2
-        with:
-          webhook_url: ${{ env.DISCORD_WEBHOOK }}
-          title: 'Deployment notification: ${{ github.event.repository.name }}'
-          description: |
-            **Status:** ${{ job.status }}
-            **Author:** ${{ github.actor }}
-          color: '${{ steps.notification_vars.outputs.color }}'
-          include_image: 'true'
-          title_url: 'https://github.com/${{ github.repository }}/commit/${{ github.sha }}'

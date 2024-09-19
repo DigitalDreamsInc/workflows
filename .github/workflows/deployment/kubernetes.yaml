@@ -13,17 +13,10 @@ on:
         description: The reference to the Kubernetes configuration
         required: false
         default: op://kubernetes/kubeconfig/prod
-      DISCORD_WEBHOOK_REF:
-        type: string
-        description: The reference to the Discord webhook
-        required: false
-        default: op://actions/Discord/webhook
 
 jobs:
   deploy:
-    name: Deploy to Kubernetes
     runs-on: ubuntu-latest
-
     steps:
       - name: Load secrets from 1Password
         uses: 1password/load-secrets-action@v2
@@ -70,26 +63,3 @@ jobs:
         working-directory: k8s
         run: |
           kustomize build . | kubectl apply -f -
-
-      - name: Set Notification Variables
-        id: notification_vars
-        if: always()
-        run: |-
-          case "${{ job.status }}" in
-            success) echo "color=#17C964" >> $GITHUB_OUTPUT ;;
-            failure) echo "color=#F31260" >> $GITHUB_OUTPUT ;;
-            *)       echo "color=#FFA500" >> $GITHUB_OUTPUT ;;
-          esac
-
-      - name: Notify Discord
-        if: always()
-        uses: cabrera-evil/discord-notify-action@1.0.2
-        with:
-          webhook_url: ${{ env.DISCORD_WEBHOOK }}
-          title: "Deployment notification: ${{ github.event.repository.name }}"
-          description: |
-            **Status:** ${{ job.status }}
-            **Author:** ${{ github.actor }}
-          color: "${{ steps.notification_vars.outputs.color }}"
-          include_image: "true"
-          title_url: "https://github.com/${{ github.repository }}/commit/${{ github.sha }}"

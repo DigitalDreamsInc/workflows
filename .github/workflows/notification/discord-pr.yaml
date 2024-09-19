@@ -1,4 +1,4 @@
-name: PR Notification
+name: Discord Notification PR
 
 on:
   workflow_call:
@@ -11,9 +11,7 @@ on:
 
 jobs:
   notify:
-    name: Notify PR Status
     runs-on: ubuntu-latest
-
     steps:
       - name: Load deployment secrets from 1Password
         uses: 1password/load-secrets-action@v1
