@@ -1,4 +1,4 @@
-name: Discord Notification Status
+name: Notify Status to Discord
 on:
   workflow_call:
     inputs:

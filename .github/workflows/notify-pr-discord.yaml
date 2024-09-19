@@ -1,4 +1,4 @@
-name: Discord Notification PR
+name: Notify PR to Discord
 
 on:
   workflow_call:

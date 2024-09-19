@@ -1,4 +1,4 @@
-name: Docker Publish
+name: Publish to Docker
 
 on:
   workflow_call:

@@ -1,18 +1,23 @@
-name: K8s Deployment
+name: Deploy to Kubernetes
 
 on:
   workflow_call:
     inputs:
+      STAGE:
+        type: string
+        description: The stage to deploy to
+        required: true
+        default: production
       SECRET_REF:
         type: string
         description: The reference to the Kubernetes secret
         required: false
-        default: op://kubernetes/${{ github.event.repository.name }}/secret
+        default: op://kubernetes/${{ github.event.repository.name }}/${{ inputs.STAGE }}
       KUBECONFIG_REF:
         type: string
         description: The reference to the Kubernetes configuration
         required: false
-        default: op://kubernetes/kubeconfig/prod
+        default: op://kubernetes/kubeconfig/${{ inputs.STAGE }}
 
 jobs:
   deploy:

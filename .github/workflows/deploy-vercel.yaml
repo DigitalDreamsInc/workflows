@@ -1,25 +1,26 @@
-name: Vercel Deployment
+name: Deploy to Vercel
 on:
   workflow_call:
     inputs:
-      VERCEL_STAGE:
+      STAGE:
         type: string
-        description: "The Vercel stage to deploy to"
+        description: The stage to deploy to
         required: true
-        default: preview
+        default: production
       VERCEL_ORG_ID_REF:
         type: string
-        description: "The reference to the Vercel organization ID"
+        description: The reference to the Vercel organization ID
         required: false
         default: op://Vercel/cabrera-evil/organization-id
       VERCEL_PROJECT_ID_REF:
         type: string
-        description: "The reference to the Vercel project ID"
+        description: The reference to the Vercel project ID
         required: false
         default: op://Vercel/${{ github.event.repository.name }}/project-id
 
 jobs:
   deploy:
+    name: ${{ inputs.STAGE }}
     runs-on: ubuntu-latest
     steps:
       - name: Load secrets from 1Password
@@ -37,7 +38,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "20"
+          node-version: 20
 
       - name: Install Vercel and PNPM
         run: npm install --global vercel@latest pnpm@latest
@@ -46,10 +47,10 @@ jobs:
         run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=${{ inputs.VERCEL_STAGE }} --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=${{ inputs.STAGE }} --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Build Project Artifacts
-        run: vercel build ${{ inputs.VERCEL_STAGE == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel build ${{ inputs.STAGE == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy Project Artifacts to Vercel
-        run: vercel deploy --prebuilt ${{ inputs.VERCEL_STAGE == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel deploy --prebuilt ${{ inputs.STAGE == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
