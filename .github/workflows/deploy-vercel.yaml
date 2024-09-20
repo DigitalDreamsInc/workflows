@@ -7,6 +7,11 @@ on:
         description: The stage to deploy to
         required: false
         default: production
+      VERCEL_TOKEN_REF:
+        type: string
+        description: The reference to the Vercel token
+        required: false
+        default: op://Vercel/cabrera-evil/token
       VERCEL_ORG_ID_REF:
         type: string
         description: The reference to the Vercel organization ID
@@ -29,6 +34,7 @@ jobs:
           export-env: true
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          VERCEL_TOKEN: ${{ inputs.VERCEL_TOKEN_REF }}
           VERCEL_ORG_ID: ${{ inputs.VERCEL_ORG_ID_REF }}
           VERCEL_PROJECT_ID: ${{ inputs.VERCEL_PROJECT_ID_REF }}
 
@@ -47,10 +53,10 @@ jobs:
         run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=${{ inputs.STAGE }} --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=${{ inputs.STAGE }} --token=${{ env.VERCEL_TOKEN }}
 
       - name: Build Project Artifacts
-        run: vercel build ${{ inputs.STAGE == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel build ${{ inputs.STAGE == 'production' && '--prod' || '' }} --token=${{ env.VERCEL_TOKEN }}
 
       - name: Deploy Project Artifacts to Vercel
-        run: vercel deploy --prebuilt ${{ inputs.STAGE == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel deploy --prebuilt ${{ inputs.STAGE == 'production' && '--prod' || '' }} --token=${{ env.VERCEL_TOKEN }}
