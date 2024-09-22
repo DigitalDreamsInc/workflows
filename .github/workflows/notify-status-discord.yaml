@@ -9,6 +9,7 @@ on:
 
 jobs:
   notify:
+    name: Discord
     runs-on: ubuntu-latest
     steps:
       - name: Load secrets from 1Password
