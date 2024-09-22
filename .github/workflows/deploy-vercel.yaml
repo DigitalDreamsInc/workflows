@@ -5,8 +5,7 @@ on:
       STAGE:
         type: string
         description: The stage to deploy to
-        required: false
-        default: production
+        required: true
       VERCEL_TOKEN_REF:
         type: string
         description: The reference to the Vercel token
