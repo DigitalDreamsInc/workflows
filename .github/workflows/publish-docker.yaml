@@ -6,13 +6,11 @@ on:
       DOCKER_USERNAME_REF:
         type: string
         description: The reference to the Docker username
-        required: false
-        default: op://actions/Docker/username
+        required: true
       DOCKER_PASSWORD_REF:
         type: string
         description: The reference to the Docker password
-        required: false
-        default: op://actions/Docker/password
+        required: true
 
 jobs:
   publish:

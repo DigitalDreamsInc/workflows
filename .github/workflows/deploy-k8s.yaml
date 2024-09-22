@@ -3,19 +3,23 @@ name: Deploy to Kubernetes
 on:
   workflow_call:
     inputs:
+      STAGE:
+        type: string
+        description: The stage to deploy to
+        required: false
+        default: production
       SECRET_REF:
         type: string
         description: The reference to the Kubernetes secret
-        required: false
-        default: op://kubernetes/${{ github.event.repository.name }}/production
+        required: true
       KUBECONFIG_REF:
         type: string
         description: The reference to the Kubernetes configuration
-        required: false
-        default: op://kubernetes/kubeconfig/production
+        required: true
 
 jobs:
   deploy:
+    name: ${{ inputs.STAGE }}
     runs-on: ubuntu-latest
     steps:
       - name: Install 1Password CLI

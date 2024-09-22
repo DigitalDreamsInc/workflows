@@ -10,18 +10,15 @@ on:
       VERCEL_TOKEN_REF:
         type: string
         description: The reference to the Vercel token
-        required: false
-        default: op://Vercel/cabrera-evil/token
+        required: true
       VERCEL_ORG_ID_REF:
         type: string
         description: The reference to the Vercel organization ID
-        required: false
-        default: op://Vercel/cabrera-evil/organization-id
+        required: true
       VERCEL_PROJECT_ID_REF:
         type: string
         description: The reference to the Vercel project ID
-        required: false
-        default: op://Vercel/${{ github.event.repository.name }}/project-id
+        required: true
 
 jobs:
   deploy:
