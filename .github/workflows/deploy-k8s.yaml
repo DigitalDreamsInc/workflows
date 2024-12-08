@@ -3,6 +3,10 @@ name: Deploy to Kubernetes
 on:
   workflow_call:
     inputs:
+      OP_SERVICE_ACCOUNT_TOKEN:
+        type: string
+        description: The 1Password service account token
+        required: true
       STAGE:
         type: string
         description: The stage to deploy to
@@ -30,7 +34,7 @@ jobs:
       - name: Prepare Secrets
         working-directory: k8s
         env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ inputs.OP_SERVICE_ACCOUNT_TOKEN }}
           SECRET: ${{ inputs.SECRET_REF }}
         run: |
           op read "$SECRET" | base64 --decode > secret.yaml
@@ -48,7 +52,7 @@ jobs:
       - name: Configure Kubernetes Access
         working-directory: k8s
         env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ inputs.OP_SERVICE_ACCOUNT_TOKEN }}
           KUBECONFIG: ${{ inputs.KUBECONFIG_REF }}
         run: |
           mkdir -p ~/.kube

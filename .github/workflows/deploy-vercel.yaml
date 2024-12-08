@@ -2,6 +2,10 @@ name: Deploy to Vercel
 on:
   workflow_call:
     inputs:
+      OP_SERVICE_ACCOUNT_TOKEN:
+        type: string
+        description: The 1Password service account token
+        required: true
       STAGE:
         type: string
         description: The stage to deploy to
@@ -32,7 +36,7 @@ jobs:
         with:
           export-env: true
         env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ inputs.OP_SERVICE_ACCOUNT_TOKEN }}
           VERCEL_TOKEN: ${{ inputs.VERCEL_TOKEN_REF }}
           VERCEL_ORG_ID: ${{ inputs.VERCEL_ORG_ID_REF }}
           VERCEL_PROJECT_ID: ${{ inputs.VERCEL_PROJECT_ID_REF }}
