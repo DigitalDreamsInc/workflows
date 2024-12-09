@@ -2,10 +2,6 @@ name: Notify Status to Discord
 on:
   workflow_call:
     inputs:
-      OP_SERVICE_ACCOUNT_TOKEN:
-        type: string
-        description: The 1Password service account token
-        required: true
       DISCORD_WEBHOOK_REF:
         type: string
         description: "The reference to the Discord webhook"
@@ -21,7 +17,7 @@ jobs:
         with:
           export-env: true
         env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ inputs.OP_SERVICE_ACCOUNT_TOKEN }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           DISCORD_WEBHOOK: ${{ inputs.DISCORD_WEBHOOK_REF}}
 
       - name: Set Notification Variables
