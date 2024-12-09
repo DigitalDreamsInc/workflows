@@ -18,6 +18,10 @@ on:
         type: string
         description: The reference to the Vercel project ID
         required: true
+    secrets:
+      OP_SERVICE_ACCOUNT_TOKEN:
+        description: The 1Password service account token
+        required: true
 
 jobs:
   deploy:
