@@ -6,6 +6,11 @@ on:
         type: string
         description: "The reference to the Discord webhook"
         required: true
+      DEPLOY_STATUS:
+        type: string
+        description: "The status of the deployment"
+        required: true
+        default: "unknown"
     secrets:
       OP_SERVICE_ACCOUNT_TOKEN:
         description: The 1Password service account token
@@ -28,7 +33,7 @@ jobs:
         id: notification_vars
         if: always()
         run: |-
-          case "${{ job.status }}" in
+          case "${{ inputs.DEPLOY_STATUS }}" in
             success) echo "color=#17C964" >> $GITHUB_OUTPUT ;;
             failure) echo "color=#F31260" >> $GITHUB_OUTPUT ;;
             *)       echo "color=#FFA500" >> $GITHUB_OUTPUT ;;
@@ -41,7 +46,7 @@ jobs:
           webhook_url: ${{ env.DISCORD_WEBHOOK }}
           title: "Deployment notification: ${{ github.event.repository.name }}"
           description: |
-            **Status:** ${{ job.status }}
+            **Status:** ${{ inputs.DEPLOY_STATUS }}
             **Author:** ${{ github.actor }}
           color: "${{ steps.notification_vars.outputs.color }}"
           include_image: "true"

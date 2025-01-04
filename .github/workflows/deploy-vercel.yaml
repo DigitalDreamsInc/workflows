@@ -26,6 +26,8 @@ on:
 jobs:
   deploy:
     name: ${{ inputs.STAGE }}
+    outputs:
+      status: ${{ steps.deployment_status.outputs.status }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -60,3 +62,8 @@ jobs:
 
       - name: Deploy Project Artifacts to Vercel
         run: vercel deploy --prebuilt ${{ inputs.STAGE == 'production' && '--prod' || '' }} --token=${{ env.VERCEL_TOKEN }}
+
+      - name: Set Deployment Status Output
+        id: deployment_status
+        run: |
+          echo "status=$([[ $? -eq 0 ]] && echo 'success' || echo 'failure')" >> $GITHUB_OUTPUT
