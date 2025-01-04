@@ -15,6 +15,10 @@ on:
         type: string
         description: The reference to the Kubernetes configuration
         required: true
+    outputs:
+      status:
+        description: The status of the deployment
+        value: ${{ jobs.deploy.outputs.status }}
     secrets:
       OP_SERVICE_ACCOUNT_TOKEN:
         description: The 1Password service account token
@@ -24,7 +28,7 @@ jobs:
   deploy:
     name: ${{ inputs.STAGE }}
     outputs:
-      status: ${{ steps.deployment_status.outputs.status }}
+      status: ${{ steps.deployment_status.outputs.result }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -61,11 +65,17 @@ jobs:
           op read "$KUBECONFIG" | base64 --decode > ~/.kube/config
 
       - name: Apply Kubernetes Manifests
+        id: apply_k8s
         working-directory: k8s
         run: |
           kustomize build . | kubectl apply -f -
+        continue-on-error: true
 
       - name: Set Deployment Status Output
         id: deployment_status
         run: |
-          echo "status=$([[ $? -eq 0 ]] && echo 'success' || echo 'failure')" >> $GITHUB_OUTPUT
+          if [ "${{ steps.apply_k8s.outcome }}" == "success" ]; then
+            echo "result=success" >> $GITHUB_OUTPUT
+          else
+            echo "result=failure" >> $GITHUB_OUTPUT
+          fi
