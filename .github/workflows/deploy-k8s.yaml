@@ -23,6 +23,8 @@ on:
 jobs:
   deploy:
     name: ${{ inputs.STAGE }}
+    outputs:
+      status: ${{ steps.deployment_status.outputs.status }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -62,3 +64,8 @@ jobs:
         working-directory: k8s
         run: |
           kustomize build . | kubectl apply -f -
+
+      - name: Set Deployment Status Output
+        id: deployment_status
+        run: |
+          echo "status=$([[ $? -eq 0 ]] && echo 'success' || echo 'failure')" >> $GITHUB_OUTPUT
