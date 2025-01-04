@@ -11,6 +11,10 @@ on:
         type: string
         description: The reference to the Docker password
         required: true
+    outputs:
+      status:
+        description: The status of the deployment
+        value: ${{ jobs.publish.outputs.status }}
     secrets:
       OP_SERVICE_ACCOUNT_TOKEN:
         description: The 1Password service account token
@@ -19,6 +23,8 @@ on:
 jobs:
   publish:
     name: Docker
+    outputs:
+      status: ${{ steps.publish_status.outputs.status }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -58,6 +64,7 @@ jobs:
             type=semver,pattern={{version}}
 
       - name: Build and Push Docker Image
+        id: publish
         uses: docker/build-push-action@v5
         with:
           push: true
@@ -66,3 +73,13 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64,linux/arm64
+        continue-on-error: true
+
+      - name: Set Publish Status Output
+        id: publish_status
+        run: |
+          if [ "${{ steps.publish.outcome }}" == "success" ]; then
+            echo "result=success" >> $GITHUB_OUTPUT
+          else
+            echo "result=failure" >> $GITHUB_OUTPUT
+          fi

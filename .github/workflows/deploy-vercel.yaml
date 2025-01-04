@@ -18,6 +18,10 @@ on:
         type: string
         description: The reference to the Vercel project ID
         required: true
+    outputs:
+      status:
+        description: The status of the deployment
+        value: ${{ jobs.deploy.outputs.status }}
     secrets:
       OP_SERVICE_ACCOUNT_TOKEN:
         description: The 1Password service account token
@@ -61,9 +65,15 @@ jobs:
         run: vercel build ${{ inputs.STAGE == 'production' && '--prod' || '' }} --token=${{ env.VERCEL_TOKEN }}
 
       - name: Deploy Project Artifacts to Vercel
+        id: deployment
         run: vercel deploy --prebuilt ${{ inputs.STAGE == 'production' && '--prod' || '' }} --token=${{ env.VERCEL_TOKEN }}
+        continue-on-error: true
 
       - name: Set Deployment Status Output
         id: deployment_status
         run: |
-          echo "status=$([[ $? -eq 0 ]] && echo 'success' || echo 'failure')" >> $GITHUB_OUTPUT
+          if [ "${{ steps.deployment.outcome }}" == "success" ]; then
+            echo "result=success" >> $GITHUB_OUTPUT
+          else
+            echo "result=failure" >> $GITHUB_OUTPUT
+          fi

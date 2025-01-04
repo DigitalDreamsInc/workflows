@@ -65,7 +65,7 @@ jobs:
           op read "$KUBECONFIG" | base64 --decode > ~/.kube/config
 
       - name: Apply Kubernetes Manifests
-        id: apply_k8s
+        id: deployment
         working-directory: k8s
         run: |
           kustomize build . | kubectl apply -f -
@@ -74,7 +74,7 @@ jobs:
       - name: Set Deployment Status Output
         id: deployment_status
         run: |
-          if [ "${{ steps.apply_k8s.outcome }}" == "success" ]; then
+          if [ "${{ steps.deployment.outcome }}" == "success" ]; then
             echo "result=success" >> $GITHUB_OUTPUT
           else
             echo "result=failure" >> $GITHUB_OUTPUT
