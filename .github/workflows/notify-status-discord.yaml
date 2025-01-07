@@ -56,12 +56,13 @@ jobs:
         with:
           webhook_url: ${{ env.DISCORD_WEBHOOK }}
           title: "${{ inputs.TITLE }} notification: ${{ github.event.repository.name }}"
-          description: '${{ inputs.DESCRIPTION }}'
+          description: "${{ inputs.DESCRIPTION }}"
           color: "${{ steps.notification_vars.outputs.color }}"
           status: "${{ inputs.DEPLOY_STATUS }}"
           environment: "${{ inputs.DEPLOY_ENVIRONMENT }}"
           repo_name: "${{ github.event.repository.name }}"
           repo_url: "${{ github.event.repository.html_url }}"
+          commit_message: "${{ github.event.workflow_run.head_commit.message }}"
           commit_sha: "${{ github.sha }}"
           author: "${{ github.actor }}"
           include_image: true
