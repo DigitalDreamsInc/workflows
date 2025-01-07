@@ -2,6 +2,14 @@ name: Notify Status to Discord
 on:
   workflow_call:
     inputs:
+      TITLE:
+        type: string
+        description: "The title of the deployment"
+        default: "Deployment"
+      DESCRIPTION:
+        type: string
+        description: "The description of the deployment"
+        default: "A new deployment has been triggered"
       DISCORD_WEBHOOK_REF:
         type: string
         description: "The reference to the Discord webhook"
@@ -9,7 +17,10 @@ on:
       DEPLOY_STATUS:
         type: string
         description: "The status of the deployment"
-        required: true
+        default: "unknown"
+      DEPLOY_ENVIRONMENT:
+        type: string
+        description: "The environment of the deployment"
         default: "unknown"
     secrets:
       OP_SERVICE_ACCOUNT_TOKEN:
@@ -41,13 +52,16 @@ jobs:
 
       - name: Notify Discord
         if: always()
-        uses: cabrera-evil/discord-notify-action@1.0.2
+        uses: cabrera-evil/discord-notify-action@1.1.6
         with:
           webhook_url: ${{ env.DISCORD_WEBHOOK }}
-          title: "Deployment notification: ${{ github.event.repository.name }}"
-          description: |
-            **Status:** ${{ inputs.DEPLOY_STATUS }}
-            **Author:** ${{ github.actor }}
+          title: "${{ inputs.TITLE }} notification: ${{ github.event.repository.name }}"
+          description: '${{ inputs.DESCRIPTION }}'
           color: "${{ steps.notification_vars.outputs.color }}"
-          include_image: "true"
-          title_url: "https://github.com/${{ github.repository }}/commit/${{ github.sha }}"
+          status: "${{ inputs.DEPLOY_STATUS }}"
+          environment: "${{ inputs.DEPLOY_ENVIRONMENT }}"
+          repo_name: "${{ github.event.repository.name }}"
+          repo_url: "${{ github.event.repository.html_url }}"
+          commit_sha: "${{ github.sha }}"
+          author: "${{ github.actor }}"
+          include_image: true

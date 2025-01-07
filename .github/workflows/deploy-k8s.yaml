@@ -3,10 +3,10 @@ name: Deploy to Kubernetes
 on:
   workflow_call:
     inputs:
-      STAGE:
+      DEPLOY_ENVIRONMENT:
         type: string
-        description: The stage to deploy to
-        required: true
+        description: "The environment of the deployment"
+        default: "unknown"
       SECRET_REF:
         type: string
         description: The reference to the Kubernetes secret
@@ -26,7 +26,7 @@ on:
 
 jobs:
   deploy:
-    name: ${{ inputs.STAGE }}
+    name: ${{ inputs.DEPLOY_ENVIRONMENT }}
     outputs:
       status: ${{ steps.deployment_status.outputs.result }}
     runs-on: ubuntu-latest

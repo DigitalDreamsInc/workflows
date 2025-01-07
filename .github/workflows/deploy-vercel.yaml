@@ -2,10 +2,11 @@ name: Deploy to Vercel
 on:
   workflow_call:
     inputs:
-      STAGE:
+      DEPLOY_ENVIRONMENT:
         type: string
-        description: The stage to deploy to
+        description: "The environment of the deployment"
         required: true
+        default: "unknown"
       VERCEL_TOKEN_REF:
         type: string
         description: The reference to the Vercel token
@@ -29,7 +30,7 @@ on:
 
 jobs:
   deploy:
-    name: ${{ inputs.STAGE }}
+    name: ${{ inputs.DEPLOY_ENVIRONMENT }}
     outputs:
       status: ${{ steps.deployment_status.outputs.status }}
     runs-on: ubuntu-latest
@@ -59,14 +60,14 @@ jobs:
         run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=${{ inputs.STAGE }} --token=${{ env.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=${{ inputs.DEPLOY_ENVIRONMENT }} --token=${{ env.VERCEL_TOKEN }}
 
       - name: Build Project Artifacts
-        run: vercel build ${{ inputs.STAGE == 'production' && '--prod' || '' }} --token=${{ env.VERCEL_TOKEN }}
+        run: vercel build ${{ inputs.DEPLOY_ENVIRONMENT == 'production' && '--prod' || '' }} --token=${{ env.VERCEL_TOKEN }}
 
       - name: Deploy Project Artifacts to Vercel
         id: deployment
-        run: vercel deploy --prebuilt ${{ inputs.STAGE == 'production' && '--prod' || '' }} --token=${{ env.VERCEL_TOKEN }}
+        run: vercel deploy --prebuilt ${{ inputs.DEPLOY_ENVIRONMENT == 'production' && '--prod' || '' }} --token=${{ env.VERCEL_TOKEN }}
         continue-on-error: true
 
       - name: Set Deployment Status Output
