@@ -23,6 +23,9 @@ on:
       status:
         description: The status of the deployment
         value: ${{ jobs.deploy.outputs.status }}
+      url:
+        description: The URL of the deployment
+        value: ${{ jobs.deploy.outputs.url }}
     secrets:
       OP_SERVICE_ACCOUNT_TOKEN:
         description: The 1Password service account token
@@ -33,13 +36,14 @@ jobs:
     name: ${{ inputs.DEPLOY_ENVIRONMENT }}
     outputs:
       status: ${{ steps.deployment_status.outputs.result }}
+      url: ${{ steps.deployment.outputs.url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Load secrets from 1Password
-        uses: 1password/load-secrets-action@v2
+        uses: 1password/load-secrets-action@v2.0.0
         with:
           export-env: true
         env:
@@ -67,14 +71,18 @@ jobs:
 
       - name: Deploy Project Artifacts to Vercel
         id: deployment
-        run: vercel deploy --prebuilt ${{ inputs.DEPLOY_ENVIRONMENT == 'production' && '--prod' || '' }} --token=${{ env.VERCEL_TOKEN }}
+        run: |
+          DEPLOY_OUTPUT=$(vercel deploy --prebuilt ${{ inputs.DEPLOY_ENVIRONMENT == 'production' && '--prod' || '' }} --token=${{ env.VERCEL_TOKEN }})
+          DEPLOY_URL=$(echo "${DEPLOY_OUTPUT}" | grep -oE "https?://[a-zA-Z0-9./_-]+")
+          echo "${DEPLOY_OUTPUT}"
+          echo "url=${DEPLOY_URL}" >> $GITHUB_OUTPUT
         continue-on-error: true
 
       - name: Set Deployment Status Output
         id: deployment_status
         run: |
-          if [ "${{ steps.deployment.outcome }}" == "success" ]; then
-            echo "result=success" >> $GITHUB_OUTPUT
-          else
-            echo "result=failure" >> $GITHUB_OUTPUT
-          fi
+          case "${{ steps.deployment.outcome }}" in
+            success) echo "result=success" >> $GITHUB_OUTPUT ;;
+            failure) echo "result=failure" >> $GITHUB_OUTPUT ;;
+            *)       echo "result=unknown" >> $GITHUB_OUTPUT ;;
+          esac

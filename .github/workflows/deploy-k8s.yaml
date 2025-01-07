@@ -32,10 +32,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Install 1Password CLI
-        uses: 1password/install-cli-action@v1
+        uses: 1password/install-cli-action@v1.0.0
 
       - name: Prepare Secrets
         working-directory: k8s
@@ -74,8 +74,8 @@ jobs:
       - name: Set Deployment Status Output
         id: deployment_status
         run: |
-          if [ "${{ steps.deployment.outcome }}" == "success" ]; then
-            echo "result=success" >> $GITHUB_OUTPUT
-          else
-            echo "result=failure" >> $GITHUB_OUTPUT
-          fi
+          case "${{ steps.deployment.outcome }}" in
+            success) echo "result=success" >> $GITHUB_OUTPUT ;;
+            failure) echo "result=failure" >> $GITHUB_OUTPUT ;;
+            *)       echo "result=unknown" >> $GITHUB_OUTPUT ;;
+          esac
