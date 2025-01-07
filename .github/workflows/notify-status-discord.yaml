@@ -50,7 +50,7 @@ jobs:
             *)       echo "color=#FFA500" >> $GITHUB_OUTPUT ;;
           esac
           # Get git short SHA
-          echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "short_sha=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_OUTPUT
 
       - name: Notify Discord
         uses: cabrera-evil/discord-notify-action@1.1.6
