@@ -53,7 +53,7 @@ jobs:
           echo "short_sha=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_OUTPUT
 
       - name: Notify Discord
-        uses: cabrera-evil/discord-notify-action@1.1.6
+        uses: cabrera-evil/discord-notify-action@1.1.7
         with:
           webhook_url: ${{ env.DISCORD_WEBHOOK }}
           title: "${{ inputs.TITLE }} notification: ${{ github.event.repository.name }}"
