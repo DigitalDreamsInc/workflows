@@ -62,7 +62,7 @@ jobs:
           environment: "${{ inputs.DEPLOY_ENVIRONMENT }}"
           repo_name: "${{ github.event.repository.name }}"
           repo_url: "${{ github.event.repository.html_url }}"
-          commit_message: "${{ github.event.workflow_run.head_commit.message }}"
+          commit_message: "${{ github.event.head_commit.message }}"
           commit_sha: "${{ github.sha }}"
           author: "${{ github.actor }}"
           include_image: true

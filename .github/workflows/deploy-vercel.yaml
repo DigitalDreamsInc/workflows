@@ -32,7 +32,7 @@ jobs:
   deploy:
     name: ${{ inputs.DEPLOY_ENVIRONMENT }}
     outputs:
-      status: ${{ steps.deployment_status.outputs.status }}
+      status: ${{ steps.deployment_status.outputs.result }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
