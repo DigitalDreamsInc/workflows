@@ -53,18 +53,17 @@ jobs:
           echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: Notify Discord
-        needs: set_environment
         uses: cabrera-evil/discord-notify-action@1.1.6
         with:
           webhook_url: ${{ env.DISCORD_WEBHOOK }}
           title: "${{ inputs.TITLE }} notification: ${{ github.event.repository.name }}"
           description: "${{ inputs.DESCRIPTION }}"
-          color: "${{ needs.set_environment.outputs.color }}"
+          color: "${{ steps.set_environment.outputs.color }}"
           status: "${{ inputs.DEPLOY_STATUS }}"
           environment: "${{ inputs.DEPLOY_ENVIRONMENT }}"
           repo_name: "${{ github.event.repository.name }}"
           repo_url: "${{ github.event.repository.html_url }}"
           commit_message: "${{ github.event.head_commit.message }}"
-          commit_sha: "${{ needs.set_environment.outputs.short_sha }}"
+          commit_sha: "${{ steps.set_environment.outputs.short_sha }}"
           author: "${{ github.actor }}"
           include_image: true
