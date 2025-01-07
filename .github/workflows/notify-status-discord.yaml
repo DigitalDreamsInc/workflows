@@ -40,29 +40,31 @@ jobs:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           DISCORD_WEBHOOK: ${{ inputs.DISCORD_WEBHOOK_REF}}
 
-      - name: Set Notification Variables
-        id: notification_vars
-        if: always()
-        run: |-
+      - name: Set Environment
+        id: set_environment
+        run: |
+          # Set notification color based on DEPLOY_STATUS
           case "${{ inputs.DEPLOY_STATUS }}" in
             success) echo "color=#17C964" >> $GITHUB_OUTPUT ;;
             failure) echo "color=#F31260" >> $GITHUB_OUTPUT ;;
             *)       echo "color=#FFA500" >> $GITHUB_OUTPUT ;;
           esac
+          # Get git short SHA
+          echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: Notify Discord
-        if: always()
+        needs: set_environment
         uses: cabrera-evil/discord-notify-action@1.1.6
         with:
           webhook_url: ${{ env.DISCORD_WEBHOOK }}
           title: "${{ inputs.TITLE }} notification: ${{ github.event.repository.name }}"
           description: "${{ inputs.DESCRIPTION }}"
-          color: "${{ steps.notification_vars.outputs.color }}"
+          color: "${{ needs.set_environment.outputs.color }}"
           status: "${{ inputs.DEPLOY_STATUS }}"
           environment: "${{ inputs.DEPLOY_ENVIRONMENT }}"
           repo_name: "${{ github.event.repository.name }}"
           repo_url: "${{ github.event.repository.html_url }}"
           commit_message: "${{ github.event.head_commit.message }}"
-          commit_sha: "${{ github.sha }}"
+          commit_sha: "${{ needs.set_environment.outputs.short_sha }}"
           author: "${{ github.actor }}"
           include_image: true
