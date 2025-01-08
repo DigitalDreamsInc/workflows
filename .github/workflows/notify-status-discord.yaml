@@ -5,10 +5,12 @@ on:
       TITLE:
         type: string
         description: "The title of the deployment"
+        required: false
         default: "Deployment"
       DESCRIPTION:
         type: string
         description: "The description of the deployment"
+        required: false
         default: "A new deployment has been triggered"
       DISCORD_WEBHOOK_REF:
         type: string
@@ -17,11 +19,17 @@ on:
       DEPLOY_STATUS:
         type: string
         description: "The status of the deployment"
+        required: false
         default: "unknown"
       DEPLOY_ENVIRONMENT:
         type: string
         description: "The environment of the deployment"
+        required: false
         default: "unknown"
+      DEPLOY_URL:
+        type: string
+        description: "The URL of the deployment"
+        required: false
     secrets:
       OP_SERVICE_ACCOUNT_TOKEN:
         description: The 1Password service account token
@@ -60,7 +68,7 @@ jobs:
           esac
 
       - name: Notify Discord
-        uses: cabrera-evil/discord-notify-action@1.1.7
+        uses: cabrera-evil/discord-notify-action@1.1.8
         with:
           webhook_url: ${{ env.DISCORD_WEBHOOK }}
           title: "${{ inputs.TITLE }} notification: ${{ github.event.repository.name }}"
@@ -68,6 +76,7 @@ jobs:
           color: "${{ steps.set_environment.outputs.color }}"
           status: "${{ inputs.DEPLOY_STATUS }}"
           environment: "${{ inputs.DEPLOY_ENVIRONMENT }}"
+          url: "${{ inputs.DEPLOY_URL }}"
           repo_name: "${{ github.event.repository.name }}"
           repo_url: "${{ github.event.repository.html_url }}"
           commit_message: "${{ github.event.head_commit.message }}"

@@ -6,6 +6,7 @@ on:
       DEPLOY_ENVIRONMENT:
         type: string
         description: "The environment of the deployment"
+        required: false
         default: "unknown"
       SECRET_REF:
         type: string
