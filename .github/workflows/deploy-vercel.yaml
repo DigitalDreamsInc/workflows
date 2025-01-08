@@ -2,20 +2,20 @@ name: Deploy to Vercel
 on:
   workflow_call:
     inputs:
-      DEPLOY_ENVIRONMENT:
+      environment:
         type: string
         description: "The environment of the deployment"
         required: true
         default: "unknown"
-      VERCEL_TOKEN_REF:
+      vercel_token_ref:
         type: string
         description: The reference to the Vercel token
         required: true
-      VERCEL_ORG_ID_REF:
+      vercel_org_id_ref:
         type: string
         description: The reference to the Vercel organization ID
         required: true
-      VERCEL_PROJECT_ID_REF:
+      vercel_project_id_ref:
         type: string
         description: The reference to the Vercel project ID
         required: true
@@ -33,7 +33,7 @@ on:
 
 jobs:
   deploy:
-    name: ${{ inputs.DEPLOY_ENVIRONMENT }}
+    name: ${{ inputs.environment }}
     outputs:
       status: ${{ steps.deployment_status.outputs.result }}
       url: ${{ steps.deployment.outputs.url }}
@@ -48,9 +48,9 @@ jobs:
           export-env: true
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          VERCEL_TOKEN: ${{ inputs.VERCEL_TOKEN_REF }}
-          VERCEL_ORG_ID: ${{ inputs.VERCEL_ORG_ID_REF }}
-          VERCEL_PROJECT_ID: ${{ inputs.VERCEL_PROJECT_ID_REF }}
+          VERCEL_TOKEN: ${{ inputs.vercel_token_ref }}
+          VERCEL_ORG_ID: ${{ inputs.vercel_org_id_ref }}
+          VERCEL_PROJECT_ID: ${{ inputs.vercel_project_id_ref }}
 
       - name: Install Node.js
         uses: actions/setup-node@v3
@@ -72,15 +72,15 @@ jobs:
         run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=${{ inputs.DEPLOY_ENVIRONMENT }} --token=${{ env.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=${{ inputs.environment }} --token=${{ env.VERCEL_TOKEN }}
 
       - name: Build Project Artifacts
-        run: vercel build ${{ inputs.DEPLOY_ENVIRONMENT == 'production' && '--prod' || '' }} --token=${{ env.VERCEL_TOKEN }}
+        run: vercel build ${{ inputs.environment == 'production' && '--prod' || '' }} --token=${{ env.VERCEL_TOKEN }}
 
       - name: Deploy Project Artifacts to Vercel
         id: deployment
         run: |
-          DEPLOY_OUTPUT=$(vercel deploy --prebuilt ${{ inputs.DEPLOY_ENVIRONMENT == 'production' && '--prod' || '' }} --token=${{ env.VERCEL_TOKEN }})
+          DEPLOY_OUTPUT=$(vercel deploy --prebuilt ${{ inputs.environment == 'production' && '--prod' || '' }} --token=${{ env.VERCEL_TOKEN }})
           DEPLOY_URL=$(echo "${DEPLOY_OUTPUT}" | grep -oE "https?://[a-zA-Z0-9./_-]+")
           echo "${DEPLOY_OUTPUT}"
           echo "url=${DEPLOY_URL}" >> $GITHUB_OUTPUT
@@ -89,4 +89,4 @@ jobs:
       - name: Set Deployment Status Output
         id: deployment_status
         if: always()
-        run: echo "result=${{ steps.deployment.outcome }}" >> $GITHUB_OUTPUT ;;
+        run: echo "result=${{ steps.deployment.outcome }}" >> $GITHUB_OUTPUT

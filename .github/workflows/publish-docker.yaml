@@ -3,11 +3,11 @@ name: Publish to Docker
 on:
   workflow_call:
     inputs:
-      DOCKER_USERNAME_REF:
+      docker_username_ref:
         type: string
         description: The reference to the Docker username
         required: true
-      DOCKER_PASSWORD_REF:
+      docker_password_ref:
         type: string
         description: The reference to the Docker password
         required: true
@@ -36,8 +36,8 @@ jobs:
           export-env: true
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          DOCKER_USERNAME: ${{ inputs.DOCKER_USERNAME_REF }}
-          DOCKER_PASSWORD: ${{ inputs.DOCKER_PASSWORD_REF }}
+          DOCKER_USERNAME: ${{ inputs.docker_username_ref }}
+          DOCKER_PASSWORD: ${{ inputs.docker_password_ref }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -78,4 +78,4 @@ jobs:
       - name: Set Publish Status Output
         id: publish_status
         if: always()
-        run: echo "result=${{ steps.publish.outcome }}" >> $GITHUB_OUTPUT ;;
+        run: echo "result=${{ steps.publish.outcome }}" >> $GITHUB_OUTPUT

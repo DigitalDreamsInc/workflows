@@ -2,31 +2,31 @@ name: Notify Status to Discord
 on:
   workflow_call:
     inputs:
-      TITLE:
+      title:
         type: string
         description: "The title of the deployment"
         required: false
         default: "Deployment"
-      DESCRIPTION:
+      description:
         type: string
         description: "The description of the deployment"
         required: false
         default: "A new deployment has been triggered"
-      DISCORD_WEBHOOK_REF:
+      webhook_ref:
         type: string
         description: "The reference to the Discord webhook"
         required: true
-      DEPLOY_STATUS:
+      status:
         type: string
         description: "The status of the deployment"
         required: false
         default: "unknown"
-      DEPLOY_ENVIRONMENT:
+      environment:
         type: string
         description: "The environment of the deployment"
         required: false
         default: "unknown"
-      DEPLOY_URL:
+      url:
         type: string
         description: "The URL of the deployment"
         required: false
@@ -46,13 +46,13 @@ jobs:
           export-env: true
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          DISCORD_WEBHOOK: ${{ inputs.DISCORD_WEBHOOK_REF}}
+          DISCORD_WEBHOOK: ${{ inputs.webhook_ref}}
 
       - name: Set Environment
         id: set_environment
         run: |
-          # Set notification color based on DEPLOY_STATUS
-          case "${{ inputs.DEPLOY_STATUS }}" in
+          # Set notification color based on status
+          case "${{ inputs.status }}" in
             success) echo "color=#17C964" >> $GITHUB_OUTPUT ;;
             failure) echo "color=#F31260" >> $GITHUB_OUTPUT ;;
             *)       echo "color=#FFA500" >> $GITHUB_OUTPUT ;;
@@ -71,12 +71,12 @@ jobs:
         uses: cabrera-evil/discord-notify-action@1.1.8
         with:
           webhook_url: ${{ env.DISCORD_WEBHOOK }}
-          title: "${{ inputs.TITLE }} notification: ${{ github.event.repository.name }}"
-          description: "${{ inputs.DESCRIPTION }}"
+          title: "${{ inputs.title }} notification: ${{ github.event.repository.name }}"
+          description: "${{ inputs.description }}"
           color: "${{ steps.set_environment.outputs.color }}"
-          status: "${{ inputs.DEPLOY_STATUS }}"
-          environment: "${{ inputs.DEPLOY_ENVIRONMENT }}"
-          url: "${{ inputs.DEPLOY_URL }}"
+          status: "${{ inputs.status }}"
+          environment: "${{ inputs.environment }}"
+          url: "${{ inputs.url }}"
           repo_name: "${{ github.event.repository.name }}"
           repo_url: "${{ github.event.repository.html_url }}"
           commit_message: "${{ github.event.head_commit.message }}"

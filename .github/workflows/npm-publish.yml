@@ -3,7 +3,7 @@ name: Publish to NPM
 on:
   workflow_call:
     inputs:
-      NPM_TOKEN_REF:
+      npm_token_ref:
         type: string
         description: The reference to the NPM token
         required: true
@@ -32,7 +32,7 @@ jobs:
           export-env: true
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          NPM_TOKEN: ${{ inputs.NPM_TOKEN_REF }}
+          NPM_TOKEN: ${{ inputs.npm_token_ref }}
 
       - name: Install Node.js
         uses: actions/setup-node@v3
@@ -67,4 +67,4 @@ jobs:
       - name: Set Publish Status Output
         id: publish_status
         if: always()
-        run: echo "result=${{ steps.publish.outcome }}" >> $GITHUB_OUTPUT ;;
+        run: echo "result=${{ steps.publish.outcome }}" >> $GITHUB_OUTPUT

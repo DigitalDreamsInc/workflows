@@ -1,6 +1,11 @@
 name: Set Environment
 on:
   workflow_call:
+    inputs:
+      ref:
+        type: string
+        description: 'The branch to deploy'
+        required: true
     outputs:
       environment:
         description: 'The deployment environment'
@@ -17,7 +22,7 @@ jobs:
         id: set_environment
         run: |-
           # Set deployment environment based on branch
-          case "${GITHUB_REF}" in
+          case ${{ inputs.ref }} in
             refs/heads/master|refs/heads/main)
               echo "environment=production" >> $GITHUB_OUTPUT ;;
             *)

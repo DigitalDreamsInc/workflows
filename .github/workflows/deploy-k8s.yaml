@@ -3,16 +3,16 @@ name: Deploy to Kubernetes
 on:
   workflow_call:
     inputs:
-      DEPLOY_ENVIRONMENT:
+      environment:
         type: string
         description: "The environment of the deployment"
         required: false
         default: "unknown"
-      SECRET_REF:
+      secret_ref:
         type: string
         description: The reference to the Kubernetes secret
         required: true
-      KUBECONFIG_REF:
+      kubeconfig_ref:
         type: string
         description: The reference to the Kubernetes configuration
         required: true
@@ -27,7 +27,7 @@ on:
 
 jobs:
   deploy:
-    name: ${{ inputs.DEPLOY_ENVIRONMENT }}
+    name: ${{ inputs.environment }}
     outputs:
       status: ${{ steps.deployment_status.outputs.result }}
     runs-on: ubuntu-latest
@@ -42,7 +42,7 @@ jobs:
         working-directory: k8s
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          SECRET: ${{ inputs.SECRET_REF }}
+          SECRET: ${{ inputs.secret_ref }}
         run: |
           op read "$SECRET" | base64 --decode > secret.yaml
 
@@ -60,7 +60,7 @@ jobs:
         working-directory: k8s
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          KUBECONFIG: ${{ inputs.KUBECONFIG_REF }}
+          KUBECONFIG: ${{ inputs.kubeconfig_ref }}
         run: |
           mkdir -p ~/.kube
           op read "$KUBECONFIG" | base64 --decode > ~/.kube/config
@@ -75,4 +75,4 @@ jobs:
       - name: Set Deployment Status Output
         id: deployment_status
         if: always()
-        run: echo "result=${{ steps.deployment.outcome }}" >> $GITHUB_OUTPUT ;;
+        run: echo "result=${{ steps.deployment.outcome }}" >> $GITHUB_OUTPUT
