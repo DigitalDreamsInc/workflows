@@ -66,9 +66,5 @@ jobs:
 
       - name: Set Publish Status Output
         id: publish_status
-        run: |
-          if [ "${{ steps.publish.outcome }}" == "success" ]; then
-            echo "result=success" >> $GITHUB_OUTPUT
-          else
-            echo "result=failure" >> $GITHUB_OUTPUT
-          fi
+        if: always()
+        run: echo "result=${{ steps.publish.outcome }}" >> $GITHUB_OUTPUT ;;

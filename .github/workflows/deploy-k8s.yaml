@@ -74,9 +74,5 @@ jobs:
 
       - name: Set Deployment Status Output
         id: deployment_status
-        run: |
-          case "${{ steps.deployment.outcome }}" in
-            success) echo "result=success" >> $GITHUB_OUTPUT ;;
-            failure) echo "result=failure" >> $GITHUB_OUTPUT ;;
-            *)       echo "result=unknown" >> $GITHUB_OUTPUT ;;
-          esac
+        if: always()
+        run: echo "result=${{ steps.deployment.outcome }}" >> $GITHUB_OUTPUT ;;

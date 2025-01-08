@@ -1,0 +1,26 @@
+name: Set Deployment Environment
+on:
+  workflow_call:
+    outputs:
+      environment:
+        description: 'The deployment environment'
+        value: ${{ jobs.set_environment.outputs.environment }}
+
+jobs:
+  set_environment:
+    name: Set Environment
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.set_environment.outputs.environment }}
+    steps:
+      - name: Checkout
+        id: set_environment
+        run: |-
+          # Set deployment environment based on branch
+          case "${GITHUB_REF}" in
+            refs/heads/master|refs/heads/main)
+              echo "environment=production" >> $GITHUB_OUTPUT ;;
+            *)
+              echo "environment=preview" >> $GITHUB_OUTPUT ;;
+          esac
