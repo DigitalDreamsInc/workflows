@@ -1,4 +1,4 @@
-name: Set Deployment Environment
+name: Set Environment
 on:
   workflow_call:
     outputs:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   set_environment:
-    name: Set Environment
+    name: Environment
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     outputs:
