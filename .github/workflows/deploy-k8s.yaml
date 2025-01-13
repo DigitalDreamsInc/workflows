@@ -16,6 +16,10 @@ on:
         type: string
         description: The reference to the Kubernetes configuration
         required: true
+      short_sha:
+        type: string
+        description: "The short SHA of the deployment"
+        required: false
     outputs:
       status:
         description: The status of the deployment
@@ -54,7 +58,7 @@ jobs:
       - name: Set Docker Image in Kustomize
         working-directory: k8s
         run: |
-          kustomize edit set image "${{ env.DOCKER_USERNAME }}/${{ github.event.repository.name }}=${{ env.DOCKER_USERNAME }}/${{ github.event.repository.name }}:${{ github.sha }}"
+          kustomize edit set image "${{ env.DOCKER_USERNAME }}/${{ github.event.repository.name }}=${{ env.DOCKER_USERNAME }}/${{ github.event.repository.name }}:sha-${{ inputs.short_sha }}"
 
       - name: Configure Kubernetes Access
         working-directory: k8s

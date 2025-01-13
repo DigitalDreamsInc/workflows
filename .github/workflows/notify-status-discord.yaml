@@ -26,6 +26,10 @@ on:
         description: "The environment of the deployment"
         required: false
         default: "unknown"
+      short_sha:
+        type: string
+        description: "The short SHA of the deployment"
+        required: false
       url:
         type: string
         description: "The URL of the deployment"
@@ -57,15 +61,6 @@ jobs:
             failure) echo "color=#F31260" >> $GITHUB_OUTPUT ;;
             *)       echo "color=#FFA500" >> $GITHUB_OUTPUT ;;
           esac
-          # Get git short SHA
-          case "${{ github.event_name }}" in
-            pull_request)
-              echo "short_sha=$(echo ${{ github.event.pull_request.head.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
-              ;;
-            *)
-              echo "short_sha=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
-              ;;
-          esac
 
       - name: Notify Discord
         uses: cabrera-evil/discord-notify-action@1.1.8
@@ -80,6 +75,6 @@ jobs:
           repo_name: "${{ github.event.repository.name }}"
           repo_url: "${{ github.event.repository.html_url }}"
           commit_message: "${{ github.event.head_commit.message }}"
-          commit_sha: "${{ steps.set_environment.outputs.short_sha }}"
+          commit_sha: "${{ inputs.short_sha }}"
           author: "${{ github.actor }}"
           include_image: true
