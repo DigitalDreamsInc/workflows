@@ -3,6 +3,12 @@ name: Deploy to Kubernetes
 on:
   workflow_call:
     inputs:
+      docker_username_ref:
+        type: string
+        description: The reference to the Docker username
+        # TODO: Set the required field to true and delete default value
+        default: op://actions/Docker/username
+        # required: true
       environment:
         type: string
         description: "The environment of the deployment"
@@ -46,9 +52,16 @@ jobs:
         working-directory: k8s
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          DOCKER_USERNAME: ${{ inputs.docker_username_ref }}
+          KUBECONFIG: ${{ inputs.kubeconfig_ref }}
           SECRET: ${{ inputs.secret_ref }}
         run: |
+          # Load the Kubernetes configuration and secret
+          mkdir -p ~/.kube
+          op read "$KUBECONFIG" | base64 --decode > ~/.kube/config
           op read "$SECRET" | base64 --decode > secret.yaml
+          # Load the Docker username
+          echo "DOCKER_USERNAME=$(op read $DOCKER_USERNAME)" >> $GITHUB_ENV
 
       - name: Install Kustomize
         working-directory: k8s
@@ -59,15 +72,6 @@ jobs:
         working-directory: k8s
         run: |
           kustomize edit set image "${{ env.DOCKER_USERNAME }}/${{ github.event.repository.name }}=${{ env.DOCKER_USERNAME }}/${{ github.event.repository.name }}:sha-${{ inputs.short_sha }}"
-
-      - name: Configure Kubernetes Access
-        working-directory: k8s
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          KUBECONFIG: ${{ inputs.kubeconfig_ref }}
-        run: |
-          mkdir -p ~/.kube
-          op read "$KUBECONFIG" | base64 --decode > ~/.kube/config
 
       - name: Apply Kubernetes Manifests
         id: deployment
