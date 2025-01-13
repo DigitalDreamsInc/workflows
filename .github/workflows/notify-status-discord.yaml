@@ -1,26 +1,13 @@
 name: Notify Status to Discord
+
 on:
   workflow_call:
     inputs:
-      title:
-        type: string
-        description: "The title of the deployment"
-        required: false
-        default: "Deployment"
       description:
         type: string
         description: "The description of the deployment"
         required: false
         default: "A new deployment has been triggered"
-      webhook_ref:
-        type: string
-        description: "The reference to the Discord webhook"
-        required: true
-      status:
-        type: string
-        description: "The status of the deployment"
-        required: false
-        default: "unknown"
       environment:
         type: string
         description: "The environment of the deployment"
@@ -30,10 +17,24 @@ on:
         type: string
         description: "The short SHA of the deployment"
         required: false
+      status:
+        type: string
+        description: "The status of the deployment"
+        required: false
+        default: "unknown"
+      title:
+        type: string
+        description: "The title of the deployment"
+        required: false
+        default: "Deployment"
       url:
         type: string
         description: "The URL of the deployment"
         required: false
+      webhook_ref:
+        type: string
+        description: "The reference to the Discord webhook"
+        required: true
     secrets:
       OP_SERVICE_ACCOUNT_TOKEN:
         description: The 1Password service account token

@@ -8,13 +8,13 @@ on:
         description: "The environment of the deployment"
         required: false
         default: "unknown"
-      secret_ref:
-        type: string
-        description: The reference to the Kubernetes secret
-        required: true
       kubeconfig_ref:
         type: string
         description: The reference to the Kubernetes configuration
+        required: true
+      secret_ref:
+        type: string
+        description: The reference to the Kubernetes secret
         required: true
       short_sha:
         type: string

@@ -3,13 +3,13 @@ name: Publish to Docker
 on:
   workflow_call:
     inputs:
-      docker_username_ref:
-        type: string
-        description: The reference to the Docker username
-        required: true
       docker_password_ref:
         type: string
         description: The reference to the Docker password
+        required: true
+      docker_username_ref:
+        type: string
+        description: The reference to the Docker username
         required: true
     outputs:
       status:
