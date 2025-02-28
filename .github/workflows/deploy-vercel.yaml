@@ -62,14 +62,14 @@ jobs:
         run: npm install --global vercel@latest pnpm@latest
 
       - name: Cache pnpm store
+        id: cache
         uses: actions/cache@v3
         with:
-          path: ~/.pnpm-store
+          path: node_modules
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
 
       - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
         run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Pull Vercel Environment Information
