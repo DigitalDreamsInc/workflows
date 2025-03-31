@@ -5,27 +5,44 @@ on:
     inputs:
       environment:
         type: string
+        required: true
         description: "Deployment environment (e.g. production, preview)"
-        required: true
-      url:
+      ref:
         type: string
-        description: "Deployed URL (e.g. from Vercel)"
-        required: true
+        required: false
+        description: "Commit SHA (defaults to github.sha)"
+    outputs:
+      deployment_id:
+        description: "ID of the registered deployment"
+        value: ${{ jobs.register.outputs.deployment_id }}
 
 jobs:
   register:
-    name: ${{ inputs.environment }}
+    name: Register Deployment
     runs-on: ubuntu-latest
+    outputs:
+      deployment_id: ${{ steps.register.outputs.deployment_id }}
     steps:
       - name: Register GitHub Deployment
+        id: register
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh api repos/${{ github.repository }}/deployments -X POST \
-            -f ref="${{ github.sha }}" \
-            -f environment="${{ inputs.environment }}" \
-            -f description="Deployment to ${{ inputs.url }}" \
-            -f required_contexts="[]" \
-            -f auto_merge="false" \
-            -f transient_environment="${{ inputs.environment != 'production' }}" \
-            -f production_environment="${{ inputs.environment == 'production' }}"
+          REF="${{ inputs.ref || github.sha }}"
+
+          DEPLOYMENT_ID=$(gh api repos/${{ github.repository }}/deployments -X POST \
+            -F ref="$REF" \
+            -F environment="${{ inputs.environment }}" \
+            -F auto_merge=false \
+            -F transient_environment=${{ inputs.environment != 'production' }} \
+            -F production_environment=${{ inputs.environment == 'production' }} \
+            --jq '.id')
+
+          echo "deployment_id=$DEPLOYMENT_ID" >> $GITHUB_OUTPUT
+
+      - name: Mark as in_progress
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/deployments/${{ steps.register.outputs.deployment_id }}/statuses -X POST \
+            -f state="in_progress"
