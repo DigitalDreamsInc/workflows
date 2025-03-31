@@ -35,7 +35,7 @@ on:
 
 jobs:
   code_security:
-    name: Source Code Security Checks
+    name: Code
     runs-on: ubuntu-latest
 
     steps:
@@ -72,9 +72,9 @@ jobs:
           command: test
 
       - name: CodeQL Init
-        uses: github/codeql-action/init@v2
+        uses: github/codeql-action/init@v3.28.13
         with:
           languages: "javascript,typescript"
 
       - name: CodeQL Analyze
-        uses: github/codeql-action/analyze@v2
+        uses: github/codeql-action/analyze@v3.28.13
