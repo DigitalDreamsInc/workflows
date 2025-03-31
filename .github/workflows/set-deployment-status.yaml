@@ -16,10 +16,6 @@ on:
         required: false
         description: "Final deployed URL"
 
-permissions:
-  contents: read
-  deployments: write
-
 jobs:
   set_status:
     name: Set Deployment Status
