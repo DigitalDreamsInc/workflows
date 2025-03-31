@@ -1,4 +1,4 @@
-name: Update Deployment
+name: Register Deployment
 
 on:
   workflow_call:
@@ -13,22 +13,10 @@ on:
         required: true
 
 jobs:
-  update:
+  register:
     name: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     steps:
-      - name: Update repository metadata
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if [[ "${{ inputs.environment }}" == "production" ]]; then
-            echo "Updating repo homepage to ${{ inputs.url }}"
-            gh api repos/${{ github.repository }} -X PATCH -f homepage="${{ inputs.url }}"
-          else
-            echo "Updating repo description with preview URL"
-            gh api repos/${{ github.repository }} -X PATCH -f description="Preview: ${{ inputs.url }}"
-          fi
-
       - name: Register GitHub Deployment
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

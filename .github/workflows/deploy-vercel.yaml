@@ -75,20 +75,16 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - name: Pull Vercel Environment Information
-        run: vercel pull --token=${{ env.VERCEL_TOKEN }} --environment=${{ inputs.environment }} --yes
-
-      - name: Build Project Artifacts
-        run: vercel build --token=${{ env.VERCEL_TOKEN }} ${{ inputs.environment == 'production' && '--prod' || '' }}
+      - name: Build Project
+        run: pnpm build
 
       - name: Deploy to Vercel
         id: deployment
         run: |
-          DEPLOY_CMD="vercel --token=${{ env.VERCEL_TOKEN }} --confirm"
+          DEPLOY_CMD="vercel --token=${{ env.VERCEL_TOKEN }}"
           [[ '${{ inputs.environment }}' == 'production' ]] && DEPLOY_CMD+=" --prod"
-          DEPLOY_OUTPUT=$($DEPLOY_CMD)
+          DEPLOY_OUTPUT=$($DEPLOY_CMD  --yes)
           DEPLOY_URL=$(echo "$DEPLOY_OUTPUT" | grep -oE "https?://[a-zA-Z0-9./_-]+")
-          echo "$DEPLOY_OUTPUT"
           echo "url=$DEPLOY_URL" >> $GITHUB_OUTPUT
         continue-on-error: true
 
