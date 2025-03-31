@@ -1,0 +1,83 @@
+name: Static Code Security Analysis
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        required: true
+        description: "Branch or ref that triggered the scan"
+      default_branch:
+        type: string
+        required: true
+        description: "Default branch of the repository"
+      push_before_sha:
+        type: string
+        required: false
+      push_base_sha:
+        type: string
+        required: false
+      pull_base_sha:
+        type: string
+        required: false
+      gitguardian_api_key_ref:
+        type: string
+        required: true
+        description: "OP secret reference for GitGuardian API key"
+      snyk_token_ref:
+        type: string
+        required: false
+        description: "OP secret reference for Snyk token"
+    secrets:
+      OP_SERVICE_ACCOUNT_TOKEN:
+        required: true
+        description: "1Password service account token"
+
+jobs:
+  code_security:
+    name: Source Code Security Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Load security tokens from 1Password
+        uses: 1password/load-secrets-action@v2.0.0
+        with:
+          export-env: true
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          GITGUARDIAN_API_KEY: ${{ inputs.gitguardian_api_key_ref }}
+        #   SNYK_TOKEN: ${{ inputs.snyk_token_ref }}
+
+      - name: GitGuardian - Secrets Detection
+        uses: GitGuardian/ggshield/actions/secret@v1.37.0
+        env:
+          GITGUARDIAN_API_KEY: ${{ env.GITGUARDIAN_API_KEY }}
+          GITHUB_PUSH_BEFORE_SHA: ${{ inputs.push_before_sha }}
+          GITHUB_PUSH_BASE_SHA: ${{ inputs.push_base_sha }}
+          GITHUB_PULL_BASE_SHA: ${{ inputs.pull_base_sha }}
+          GITHUB_DEFAULT_BRANCH: ${{ inputs.default_branch }}
+
+      - name: Semgrep - Static Analysis
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: auto
+
+      #   - name: Snyk - Dependency Vulnerability Check
+      #     uses: snyk/actions@master
+      #     env:
+      #       SNYK_TOKEN: ${{ env.SNYK_TOKEN }}
+      #     with:
+      #       command: test
+
+      - name: CodeQL Init
+        uses: github/codeql-action/init@v2
+        with:
+          languages: "javascript,typescript,python,go" # Ajusta a tu stack
+
+      - name: CodeQL Analyze
+        uses: github/codeql-action/analyze@v2

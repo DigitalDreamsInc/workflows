@@ -1,0 +1,29 @@
+name: Container Image Security Scan
+
+on:
+  workflow_call:
+    inputs:
+      image:
+        required: true
+        type: string
+        description: 'Docker image to scan (e.g. ghcr.io/your-org/your-image:tag)'
+
+jobs:
+  container_security:
+    name: Container Vulnerability Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trivy - Scan Container Image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ inputs.image }}
+          format: table
+          exit-code: 1
+          ignore-unfixed: true
+          vuln-type: os,library
+
+      - name: Dockle - Dockerfile Best Practices
+        uses: goodwithtech/dockle-action@v1
+        with:
+          image: ${{ inputs.image }}
