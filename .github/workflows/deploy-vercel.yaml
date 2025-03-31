@@ -56,10 +56,13 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 20
+          node-version: 22
 
-      - name: Install Vercel and PNPM
-        run: npm install --global vercel@latest pnpm@latest
+      - name: Install PNPM
+        run: npm install --global pnpm@latest
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
 
       - name: Cache pnpm store
         id: cache
@@ -72,19 +75,18 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=${{ inputs.environment }} --token=${{ env.VERCEL_TOKEN }}
-
       - name: Build Project Artifacts
         run: vercel build ${{ inputs.environment == 'production' && '--prod' || '' }} --token=${{ env.VERCEL_TOKEN }}
 
-      - name: Deploy Project Artifacts to Vercel
+      - name: Deploy to Vercel
         id: deployment
         run: |
-          DEPLOY_OUTPUT=$(vercel deploy --prebuilt ${{ inputs.environment == 'production' && '--prod' || '' }} --token=${{ env.VERCEL_TOKEN }})
-          DEPLOY_URL=$(echo "${DEPLOY_OUTPUT}" | grep -oE "https?://[a-zA-Z0-9./_-]+")
-          echo "${DEPLOY_OUTPUT}"
-          echo "url=${DEPLOY_URL}" >> $GITHUB_OUTPUT
+          DEPLOY_CMD="vercel --token=${{ env.VERCEL_TOKEN }} --confirm"
+          [[ '${{ inputs.environment }}' == 'production' ]] && DEPLOY_CMD+=" --prod"
+          DEPLOY_OUTPUT=$($DEPLOY_CMD)
+          DEPLOY_URL=$(echo "$DEPLOY_OUTPUT" | grep -oE "https?://[a-zA-Z0-9./_-]+")
+          echo "$DEPLOY_OUTPUT"
+          echo "url=$DEPLOY_URL" >> $GITHUB_OUTPUT
         continue-on-error: true
 
       - name: Set Deployment Status Output

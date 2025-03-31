@@ -6,9 +6,7 @@ on:
       docker_username_ref:
         type: string
         description: The reference to the Docker username
-        # TODO: Set the required field to true and delete default value
-        default: op://actions/Docker/username
-        # required: true
+        required: true
       environment:
         type: string
         description: "The environment of the deployment"
