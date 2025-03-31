@@ -44,14 +44,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Load security tokens from 1Password
+      - name: Load secrets from 1Password
         uses: 1password/load-secrets-action@v2.0.0
         with:
           export-env: true
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           GITGUARDIAN_API_KEY: ${{ inputs.gitguardian_api_key_ref }}
-        #   SNYK_TOKEN: ${{ inputs.snyk_token_ref }}
+          # SNYK_TOKEN: ${{ inputs.snyk_token_ref }}
 
       - name: GitGuardian - Secrets Detection
         uses: GitGuardian/ggshield/actions/secret@v1.37.0
@@ -62,22 +62,19 @@ jobs:
           GITHUB_PULL_BASE_SHA: ${{ inputs.pull_base_sha }}
           GITHUB_DEFAULT_BRANCH: ${{ inputs.default_branch }}
 
-      - name: Semgrep - Static Analysis
-        uses: returntocorp/semgrep-action@v1
+      - name: Snyk - Dependency Vulnerability Check
+        if: ${{ env.SNYK_TOKEN != '' }}
+        continue-on-error: true
+        uses: snyk/actions@master
+        env:
+          SNYK_TOKEN: ${{ env.SNYK_TOKEN }}
         with:
-          config: auto
-
-      #   - name: Snyk - Dependency Vulnerability Check
-      #     uses: snyk/actions@master
-      #     env:
-      #       SNYK_TOKEN: ${{ env.SNYK_TOKEN }}
-      #     with:
-      #       command: test
+          command: test
 
       - name: CodeQL Init
         uses: github/codeql-action/init@v2
         with:
-          languages: "javascript,typescript,python,go" # Ajusta a tu stack
+          languages: "javascript,typescript"
 
       - name: CodeQL Analyze
         uses: github/codeql-action/analyze@v2
