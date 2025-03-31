@@ -58,9 +58,18 @@ jobs:
         run: |
           # Set notification color based on status
           case "${{ inputs.status }}" in
-            success) echo "color=#17C964" >> $GITHUB_OUTPUT ;;
-            failure) echo "color=#F31260" >> $GITHUB_OUTPUT ;;
-            *)       echo "color=#FFA500" >> $GITHUB_OUTPUT ;;
+          success)
+            echo "color=#22C55E" >> $GITHUB_OUTPUT ;;   # green-500
+          failure|error)
+            echo "color=#EF4444" >> $GITHUB_OUTPUT ;;   # red-500
+          cancelled)
+            echo "color=#A78BFA" >> $GITHUB_OUTPUT ;;   # violet-400
+          skipped)
+            echo "color=#FBBF24" >> $GITHUB_OUTPUT ;;   # amber-400
+          in_progress)
+            echo "color=#3B82F6" >> $GITHUB_OUTPUT ;;   # blue-500
+          *)
+            echo "color=#9CA3AF" >> $GITHUB_OUTPUT ;;   # gray-400 (default)
           esac
 
       - name: Notify Discord
