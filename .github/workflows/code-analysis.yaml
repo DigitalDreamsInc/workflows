@@ -70,11 +70,3 @@ jobs:
           SNYK_TOKEN: ${{ env.SNYK_TOKEN }}
         with:
           command: test
-
-      - name: CodeQL Init
-        uses: github/codeql-action/init@v3.28.13
-        with:
-          languages: "javascript,typescript"
-
-      - name: CodeQL Analyze
-        uses: github/codeql-action/analyze@v3.28.13

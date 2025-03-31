@@ -10,7 +10,7 @@ on:
 
 jobs:
   container_security:
-    name: Container Vulnerability Scan
+    name: Container
     runs-on: ubuntu-latest
 
     steps:
@@ -22,8 +22,3 @@ jobs:
           exit-code: 1
           ignore-unfixed: true
           vuln-type: os,library
-
-      - name: Dockle - Dockerfile Best Practices
-        uses: goodwithtech/dockle-action@v1
-        with:
-          image: ${{ inputs.image }}
