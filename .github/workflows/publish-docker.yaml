@@ -3,41 +3,36 @@ name: Publish to Docker
 on:
   workflow_call:
     inputs:
-      docker_password_ref:
+      image_name:
         type: string
-        description: The reference to the Docker password
         required: true
-      docker_username_ref:
-        type: string
-        description: The reference to the Docker username
+        description: "Full image name without tag (e.g., cabrera/image)"
+    secrets:
+      docker_username:
+        description: Docker Hub username
+        required: true
+      docker_password:
+        description: Docker Hub password or token
         required: true
     outputs:
       status:
         description: The status of the deployment
         value: ${{ jobs.publish.outputs.status }}
-    secrets:
-      OP_SERVICE_ACCOUNT_TOKEN:
-        description: The 1Password service account token
-        required: true
+      latest_tag:
+        description: The latest tag of the Docker image
+        value: ${{ jobs.publish.outputs.latest_tag }}
 
 jobs:
   publish:
     name: Docker
+    runs-on: ubuntu-latest
     outputs:
       status: ${{ steps.publish_status.outputs.status }}
-    runs-on: ubuntu-latest
+      latest_tag: ${{ steps.latest_tag.outputs.latest_tag }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-
-      - name: Load secrets from 1Password
-        uses: 1password/load-secrets-action@v2.0.0
-        with:
-          export-env: true
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          DOCKER_USERNAME: ${{ inputs.docker_username_ref }}
-          DOCKER_PASSWORD: ${{ inputs.docker_password_ref }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -48,14 +43,14 @@ jobs:
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ env.DOCKER_USERNAME }}
-          password: ${{ env.DOCKER_PASSWORD }}
+          username: ${{ secrets.docker_username }}
+          password: ${{ secrets.docker_password }}
 
       - name: Prepare Docker Metadata
         id: docker_meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.DOCKER_USERNAME }}/${{ github.event.repository.name }}
+          images: ${{ inputs.image_name }}
           tags: |
             type=raw,value=latest,enable=${{ endsWith(github.ref, github.event.repository.default_branch) }}
             type=sha,value={{ github.sha }}
@@ -75,7 +70,12 @@ jobs:
           platforms: linux/amd64,linux/arm64
         continue-on-error: true
 
+      - name: Set Latest Tag Output
+        id: latest_tag
+        run: |
+          echo "latest_tag=$(echo '${{ steps.docker_meta.outputs.tags }}' | tr ',' '\n' | grep 'sha-')" >> $GITHUB_OUTPUT
+
       - name: Set Publish Status Output
         id: publish_status
         if: always()
-        run: echo "result=${{ steps.publish.outcome }}" >> $GITHUB_OUTPUT
+        run: echo "status=${{ steps.publish.outcome }}" >> $GITHUB_OUTPUT

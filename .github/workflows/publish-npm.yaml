@@ -2,43 +2,31 @@ name: Publish to NPM
 
 on:
   workflow_call:
-    inputs:
-      npm_token_ref:
-        type: string
-        description: The reference to the NPM token
+    secrets:
+      npm_token:
         required: true
     outputs:
       status:
         description: The status of the deployment
         value: ${{ jobs.publish.outputs.status }}
-    secrets:
-      OP_SERVICE_ACCOUNT_TOKEN:
-        description: The 1Password service account token
-        required: true
 
 jobs:
   publish:
     name: NPM
+    runs-on: ubuntu-latest
     outputs:
       status: ${{ steps.publish_status.outputs.status }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
 
-      - name: Load secrets from 1Password
-        uses: 1password/load-secrets-action@v2.0.0
-        with:
-          export-env: true
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          NPM_TOKEN: ${{ inputs.npm_token_ref }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Install Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org/
+          always-auth: true
 
       - name: Install PNPM
         run: npm install --global pnpm@latest
@@ -61,10 +49,10 @@ jobs:
         id: publish
         run: npm publish
         env:
-          NODE_AUTH_TOKEN: ${{env.NPM_TOKEN}}
+          NODE_AUTH_TOKEN: ${{ secrets.npm_token }}
         continue-on-error: true
 
       - name: Set Publish Status Output
         id: publish_status
         if: always()
-        run: echo "result=${{ steps.publish.outcome }}" >> $GITHUB_OUTPUT
+        run: echo "status=${{ steps.publish.outcome }}" >> $GITHUB_OUTPUT

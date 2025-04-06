@@ -3,63 +3,44 @@ name: Deploy to Kubernetes
 on:
   workflow_call:
     inputs:
-      docker_username_ref:
-        type: string
-        description: The reference to the Docker username
-        required: true
       environment:
         type: string
-        description: "The environment of the deployment"
-        required: false
         default: "unknown"
-      kubeconfig_ref:
-        type: string
-        description: The reference to the Kubernetes configuration
-        required: true
-      secret_ref:
-        type: string
-        description: The reference to the Kubernetes secret
-        required: true
       short_sha:
         type: string
-        description: "The short SHA of the deployment"
-        required: false
+      image_name:
+        type: string
+        required: true
+        description: "Full image name (e.g., cabrera/my-api)"
+    secrets:
+      kubeconfig:
+        description: Base64-encoded kubeconfig file
+        required: true
+      k8s_secret:
+        description: Base64-encoded Kubernetes secret YAML
+        required: true
     outputs:
       status:
         description: The status of the deployment
         value: ${{ jobs.deploy.outputs.status }}
-    secrets:
-      OP_SERVICE_ACCOUNT_TOKEN:
-        description: The 1Password service account token
-        required: true
 
 jobs:
   deploy:
     name: ${{ inputs.environment }}
+    runs-on: ubuntu-latest
     outputs:
       status: ${{ steps.deployment_status.outputs.result }}
-    runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install 1Password CLI
-        uses: 1password/install-cli-action@v1.0.0
-
-      - name: Prepare Secrets
+      - name: Set up Kubernetes Config and Secret
         working-directory: k8s
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          DOCKER_USERNAME: ${{ inputs.docker_username_ref }}
-          KUBECONFIG: ${{ inputs.kubeconfig_ref }}
-          SECRET: ${{ inputs.secret_ref }}
         run: |
-          # Load the Kubernetes configuration and secret
           mkdir -p ~/.kube
-          op read "$KUBECONFIG" | base64 --decode > ~/.kube/config
-          op read "$SECRET" | base64 --decode > secret.yaml
-          # Load the Docker username
-          echo "DOCKER_USERNAME=$(op read $DOCKER_USERNAME)" >> $GITHUB_ENV
+          echo "${{ secrets.kubeconfig }}" | base64 -d > ~/.kube/config
+          echo "${{ secrets.k8s_secret }}" | base64 -d > secret.yaml
 
       - name: Install Kustomize
         working-directory: k8s
@@ -69,7 +50,8 @@ jobs:
       - name: Set Docker Image in Kustomize
         working-directory: k8s
         run: |
-          kustomize edit set image "${{ env.DOCKER_USERNAME }}/${{ github.event.repository.name }}=${{ env.DOCKER_USERNAME }}/${{ github.event.repository.name }}:sha-${{ inputs.short_sha }}"
+          IMAGE_TAG="${{ inputs.short_sha && format('sha-{0}', inputs.short_sha) || 'latest' }}"
+          kustomize edit set image "${{ inputs.image_name }}=${{ inputs.image_name }}:$IMAGE_TAG"
 
       - name: Apply Kubernetes Manifests
         id: deployment

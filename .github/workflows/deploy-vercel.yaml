@@ -5,20 +5,17 @@ on:
     inputs:
       environment:
         type: string
-        description: "The environment of the deployment"
         required: true
         default: "unknown"
-      vercel_org_id_ref:
-        type: string
-        description: The reference to the Vercel organization ID
+    secrets:
+      vercel_token:
+        description: The Vercel token
         required: true
-      vercel_project_id_ref:
-        type: string
-        description: The reference to the Vercel project ID
+      vercel_org_id:
+        description: The Vercel organization ID
         required: true
-      vercel_token_ref:
-        type: string
-        description: The reference to the Vercel token
+      vercel_project_id:
+        description: The Vercel project ID
         required: true
     outputs:
       status:
@@ -27,31 +24,18 @@ on:
       url:
         description: The URL of the deployment
         value: ${{ jobs.deploy.outputs.url }}
-    secrets:
-      OP_SERVICE_ACCOUNT_TOKEN:
-        description: The 1Password service account token
-        required: true
 
 jobs:
   deploy:
     name: ${{ inputs.environment }}
+    runs-on: ubuntu-latest
     outputs:
       status: ${{ steps.deployment_status.outputs.result }}
       url: ${{ steps.deployment.outputs.url }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
 
-      - name: Load secrets from 1Password
-        uses: 1password/load-secrets-action@v2.0.0
-        with:
-          export-env: true
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          VERCEL_TOKEN: ${{ inputs.vercel_token_ref }}
-          VERCEL_ORG_ID: ${{ inputs.vercel_org_id_ref }}
-          VERCEL_PROJECT_ID: ${{ inputs.vercel_project_id_ref }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Install Node.js
         uses: actions/setup-node@v3
@@ -80,10 +64,13 @@ jobs:
 
       - name: Deploy to Vercel
         id: deployment
+        env:
+          VERCEL_ORG_ID: ${{ secrets.vercel_org_id }}
+          VERCEL_PROJECT_ID: ${{ secrets.vercel_project_id }}
         run: |
-          DEPLOY_CMD="vercel --token=${{ env.VERCEL_TOKEN }}"
+          DEPLOY_CMD="vercel --token=${{ secrets.vercel_token }}"
           [[ '${{ inputs.environment }}' == 'production' ]] && DEPLOY_CMD+=" --prod"
-          DEPLOY_OUTPUT=$($DEPLOY_CMD  --yes)
+          DEPLOY_OUTPUT=$($DEPLOY_CMD --yes)
           DEPLOY_URL=$(echo "$DEPLOY_OUTPUT" | grep -oE "https?://[a-zA-Z0-9./_-]+")
           echo "url=$DEPLOY_URL" >> $GITHUB_OUTPUT
         continue-on-error: true

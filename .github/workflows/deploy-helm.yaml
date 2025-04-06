@@ -1,0 +1,83 @@
+name: Deploy to Kubernetes With Helm
+
+on:
+  workflow_call:
+    inputs:
+      docker_image:
+        type: string
+        required: true
+        description: "The Docker image (repository) to deploy"
+      short_sha:
+        type: string
+        description: "The short image tag SHA (optional; defaults to latest)"
+      environment:
+        type: string
+        default: "unknown"
+      chart:
+        type: string
+        required: true
+        description: "Helm chart to deploy (e.g., cabrera-evil/deploy-chart)"
+      release_name:
+        type: string
+        required: true
+        description: "Helm release name (e.g., api)"
+      namespace:
+        type: string
+        required: true
+        description: "Kubernetes namespace to deploy to"
+    secrets:
+      kubeconfig:
+        required: true
+        description: "Base64-encoded kubeconfig file"
+      helm_values:
+        required: true
+        description: "Base64-encoded Helm values.yaml file"
+    outputs:
+      status:
+        description: The status of the deployment
+        value: ${{ jobs.deploy.outputs.status }}
+
+jobs:
+  deploy:
+    name: ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    outputs:
+      status: ${{ steps.deployment_status.outputs.result }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Prepare Kubeconfig and Helm values
+        working-directory: k8s
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.kubeconfig }}" | base64 -d > ~/.kube/config
+          echo "${{ secrets.helm_values }}" | base64 -d > values.yaml
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+
+      - name: Add Helm Repo
+        run: |
+          helm repo add cabrera-evil https://cabrera-evil.github.io/charts/
+          helm repo update
+
+      - name: Deploy with Helm
+        id: deployment
+        working-directory: k8s
+        run: |
+          IMAGE_TAG="${{ inputs.short_sha && format('sha-{0}', inputs.short_sha) || 'latest' }}"
+          helm upgrade --install ${{ inputs.release_name }} \
+            ${{ inputs.chart }} \
+            --namespace ${{ inputs.namespace }} \
+            --create-namespace \
+            --values values.yaml \
+            --set image.repository=${{ inputs.docker_image }} \
+            --set image.tag=$IMAGE_TAG
+        continue-on-error: true
+
+      - name: Set Deployment Status Output
+        id: deployment_status
+        if: always()
+        run: echo "result=${{ steps.deployment.outcome }}" >> $GITHUB_OUTPUT

@@ -5,39 +5,23 @@ on:
     inputs:
       description:
         type: string
-        description: "The description of the deployment"
-        required: false
         default: "A new deployment has been triggered"
       environment:
         type: string
-        description: "The environment of the deployment"
-        required: false
         default: "unknown"
       short_sha:
         type: string
-        description: "The short SHA of the deployment"
-        required: false
       status:
         type: string
-        description: "The status of the deployment"
-        required: false
         default: "unknown"
       title:
         type: string
-        description: "The title of the deployment"
-        required: false
         default: "Deployment"
       url:
         type: string
-        description: "The URL of the deployment"
-        required: false
-      webhook_ref:
-        type: string
-        description: "The reference to the Discord webhook"
-        required: true
     secrets:
-      OP_SERVICE_ACCOUNT_TOKEN:
-        description: The 1Password service account token
+      discord_webhook:
+        description: Discord webhook URL
         required: true
 
 jobs:
@@ -45,18 +29,9 @@ jobs:
     name: Discord
     runs-on: ubuntu-latest
     steps:
-      - name: Load secrets from 1Password
-        uses: 1password/load-secrets-action@v2.0.0
-        with:
-          export-env: true
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          DISCORD_WEBHOOK: ${{ inputs.webhook_ref}}
-
       - name: Set Environment
         id: set_environment
         run: |
-          # Set notification color based on status
           case "${{ inputs.status }}" in
           success)
             echo "color=#22C55E" >> $GITHUB_OUTPUT ;;   # green-500
@@ -69,22 +44,22 @@ jobs:
           in_progress)
             echo "color=#3B82F6" >> $GITHUB_OUTPUT ;;   # blue-500
           *)
-            echo "color=#9CA3AF" >> $GITHUB_OUTPUT ;;   # gray-400 (default)
+            echo "color=#9CA3AF" >> $GITHUB_OUTPUT ;;   # gray-400
           esac
 
       - name: Notify Discord
         uses: cabrera-evil/discord-notify-action@1.1.8
         with:
-          webhook_url: ${{ env.DISCORD_WEBHOOK }}
+          webhook_url: ${{ secrets.discord_webhook }}
           title: "${{ inputs.title }} notification: ${{ github.event.repository.name }}"
-          description: "${{ inputs.description }}"
-          color: "${{ steps.set_environment.outputs.color }}"
-          status: "${{ inputs.status }}"
-          environment: "${{ inputs.environment }}"
-          url: "${{ inputs.url }}"
-          repo_name: "${{ github.event.repository.name }}"
-          repo_url: "${{ github.event.repository.html_url }}"
-          commit_message: "${{ github.event.head_commit.message }}"
-          commit_sha: "${{ inputs.short_sha }}"
-          author: "${{ github.actor }}"
+          description: ${{ inputs.description }}
+          color: ${{ steps.set_environment.outputs.color }}
+          status: ${{ inputs.status }}
+          environment: ${{ inputs.environment }}
+          url: ${{ inputs.url }}
+          repo_name: ${{ github.event.repository.name }}
+          repo_url: ${{ github.event.repository.html_url }}
+          commit_message: ${{ github.event.head_commit.message }}
+          commit_sha: ${{ inputs.short_sha }}
+          author: ${{ github.actor }}
           include_image: true
