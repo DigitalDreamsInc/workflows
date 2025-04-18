@@ -20,6 +20,9 @@ on:
       release_name:
         description: 'Helm release name'
         value: ${{ jobs.set_environment.outputs.release_name }}
+      docker_image:
+        description: 'Fully qualified Docker image name'
+        value: ${{ jobs.set_environment.outputs.docker_image }}
 
 jobs:
   set_environment:
@@ -30,6 +33,7 @@ jobs:
       short_sha: ${{ steps.set_environment.outputs.short_sha }}
       namespace: ${{ steps.set_environment.outputs.namespace }}
       release_name: ${{ steps.set_environment.outputs.release_name }}
+      docker_image: ${{ steps.set_environment.outputs.docker_image }}
     steps:
       - name: Set environment and metadata
         id: set_environment
@@ -54,3 +58,6 @@ jobs:
           REPO="${{ github.event.repository.name }}"  # ej: portfolio-api
           echo "namespace=${REPO%-*}" >> $GITHUB_OUTPUT
           echo "release_name=${REPO##*-}" >> $GITHUB_OUTPUT
+
+          # Construct full Docker image name
+          echo "docker_image=${{ secrets.DOCKER_USERNAME }}/$REPO" >> $GITHUB_OUTPUT
