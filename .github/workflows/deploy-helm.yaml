@@ -1,4 +1,7 @@
 name: Deploy to Kubernetes With Helm
+description: |
+  This workflow deploys a Helm chart to a Kubernetes cluster using the provided kubeconfig and Helm values.
+  It monitors the deployment status and outputs the result.
 
 on:
   workflow_call:

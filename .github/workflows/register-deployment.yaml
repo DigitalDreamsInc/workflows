@@ -1,4 +1,5 @@
 name: Register Deployment
+description: "Register a deployment with GitHub and mark it as in progress"
 
 on:
   workflow_call:

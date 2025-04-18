@@ -1,4 +1,5 @@
 name: Static Code Security Analysis
+description: "Static code security analysis using GitGuardian and Snyk"
 
 on:
   workflow_call:

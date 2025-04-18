@@ -1,4 +1,5 @@
 name: Publish to NPM
+description: "Publish package to NPM registry"
 
 on:
   workflow_call:
