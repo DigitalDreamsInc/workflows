@@ -1,4 +1,5 @@
 name: Set Environment
+
 on:
   workflow_call:
     inputs:
@@ -13,6 +14,12 @@ on:
       short_sha:
         description: 'The short SHA of the deployment'
         value: ${{ jobs.set_environment.outputs.short_sha }}
+      namespace:
+        description: 'Kubernetes namespace'
+        value: ${{ jobs.set_environment.outputs.namespace }}
+      release_name:
+        description: 'Helm release name'
+        value: ${{ jobs.set_environment.outputs.release_name }}
 
 jobs:
   set_environment:
@@ -21,23 +28,29 @@ jobs:
     outputs:
       environment: ${{ steps.set_environment.outputs.environment }}
       short_sha: ${{ steps.set_environment.outputs.short_sha }}
+      namespace: ${{ steps.set_environment.outputs.namespace }}
+      release_name: ${{ steps.set_environment.outputs.release_name }}
     steps:
-      - name: Checkout
+      - name: Set environment and metadata
         id: set_environment
-        run: |-
+        run: |
           # Set deployment environment based on branch
-          case ${{ inputs.ref }} in
+          case "${{ inputs.ref }}" in
             refs/heads/master|refs/heads/main)
               echo "environment=production" >> $GITHUB_OUTPUT ;;
             *)
               echo "environment=preview" >> $GITHUB_OUTPUT ;;
           esac
-          # Get git short SHA
-          case "${{ github.event_name }}" in
-            pull_request)
-              echo "short_sha=$(echo ${{ github.event.pull_request.head.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
-              ;;
-            *)
-              echo "short_sha=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
-              ;;
-          esac
+
+          # Get short SHA
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            SHORT_SHA=$(echo "${{ github.event.pull_request.head.sha }}" | cut -c1-7)
+          else
+            SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          fi
+          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+
+          # Extract namespace and release_name from repo name
+          REPO="${{ github.event.repository.name }}"  # ej: portfolio-api
+          echo "namespace=${REPO%-*}" >> $GITHUB_OUTPUT
+          echo "release_name=${REPO##*-}" >> $GITHUB_OUTPUT
