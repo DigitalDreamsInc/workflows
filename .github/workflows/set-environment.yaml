@@ -21,7 +21,7 @@ on:
         description: 'Helm release name'
         value: ${{ jobs.set_environment.outputs.release_name }}
       docker_image:
-        description: 'Fully qualified Docker image name'
+        description: "Full image name (e.g., cabreraevil/my-api)"
         value: ${{ jobs.set_environment.outputs.docker_image }}
 
 jobs:

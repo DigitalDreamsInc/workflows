@@ -3,10 +3,10 @@ name: Publish to Docker
 on:
   workflow_call:
     inputs:
-      image_name:
+      docker_image:
         type: string
         required: true
-        description: "Full image name without tag (e.g., cabrera/image)"
+        description: "Full image name (e.g., cabreraevil/my-api)"
     secrets:
       DOCKER_USERNAME:
         description: Docker Hub username
@@ -46,7 +46,7 @@ jobs:
         id: docker_meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ inputs.image_name }}
+          images: ${{ inputs.docker_image }}
           tags: |
             type=raw,value=latest,enable=${{ endsWith(github.ref, github.event.repository.default_branch) }}
             type=sha,value={{ github.sha }}

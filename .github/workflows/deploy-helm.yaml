@@ -6,7 +6,7 @@ on:
       docker_image:
         type: string
         required: true
-        description: "The Docker image (repository) to deploy"
+        description: "Full image name (e.g., cabreraevil/my-api)"
       short_sha:
         type: string
         description: "The short image tag SHA (optional; defaults to latest)"
