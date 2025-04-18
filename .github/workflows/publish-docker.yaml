@@ -15,9 +15,6 @@ on:
         description: Docker Hub password or token
         required: true
     outputs:
-      status:
-        description: The status of the deployment
-        value: ${{ jobs.publish.outputs.status }}
       latest_tag:
         description: The latest tag of the Docker image
         value: ${{ jobs.publish.outputs.latest_tag }}
@@ -27,7 +24,6 @@ jobs:
     name: Docker
     runs-on: ubuntu-latest
     outputs:
-      status: ${{ steps.publish_status.outputs.status }}
       latest_tag: ${{ steps.latest_tag.outputs.latest_tag }}
 
     steps:
@@ -74,8 +70,3 @@ jobs:
         id: latest_tag
         run: |
           echo "latest_tag=$(echo '${{ steps.docker_meta.outputs.tags }}' | tr ',' '\n' | grep 'sha-')" >> $GITHUB_OUTPUT
-
-      - name: Set Publish Status Output
-        id: publish_status
-        if: always()
-        run: echo "status=${{ steps.publish.outcome }}" >> $GITHUB_OUTPUT

@@ -5,17 +5,11 @@ on:
     secrets:
       npm_token:
         required: true
-    outputs:
-      status:
-        description: The status of the deployment
-        value: ${{ jobs.publish.outputs.status }}
 
 jobs:
   publish:
     name: NPM
     runs-on: ubuntu-latest
-    outputs:
-      status: ${{ steps.publish_status.outputs.status }}
 
     steps:
       - name: Checkout repository
@@ -52,7 +46,3 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.npm_token }}
         continue-on-error: true
 
-      - name: Set Publish Status Output
-        id: publish_status
-        if: always()
-        run: echo "status=${{ steps.publish.outcome }}" >> $GITHUB_OUTPUT
