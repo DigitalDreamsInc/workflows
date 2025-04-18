@@ -18,7 +18,7 @@ on:
       pull_base_sha:
         type: string
     secrets:
-      gitguardian_api_key:
+      GITGUARDIAN_API_KEY:
         required: true
         description: "GitGuardian API key"
       snyk_token:
@@ -39,7 +39,7 @@ jobs:
       - name: GitGuardian - Secrets Detection
         uses: GitGuardian/ggshield/actions/secret@v1.37.0
         env:
-          GITGUARDIAN_API_KEY: ${{ secrets.gitguardian_api_key }}
+          GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
           GITHUB_PUSH_BEFORE_SHA: ${{ inputs.push_before_sha }}
           GITHUB_PUSH_BASE_SHA: ${{ inputs.push_base_sha }}
           GITHUB_PULL_BASE_SHA: ${{ inputs.pull_base_sha }}

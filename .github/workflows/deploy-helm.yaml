@@ -26,10 +26,10 @@ on:
         required: true
         description: "Kubernetes namespace to deploy to"
     secrets:
-      kubeconfig:
+      KUBECONFIG:
         required: true
         description: "Base64-encoded kubeconfig file"
-      helm_values:
+      HELM_VALUES:
         required: true
         description: "Base64-encoded Helm values.yaml file"
     outputs:
@@ -52,8 +52,8 @@ jobs:
         working-directory: k8s
         run: |
           mkdir -p ~/.kube
-          echo "${{ secrets.kubeconfig }}" | base64 -d > ~/.kube/config
-          echo "${{ secrets.helm_values }}" | base64 -d > values.yaml
+          echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
+          echo "${{ secrets.HELM_VALUES }}" | base64 -d > values.yaml
 
       - name: Set up Helm
         uses: azure/setup-helm@v3

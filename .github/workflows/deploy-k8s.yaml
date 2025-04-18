@@ -13,10 +13,10 @@ on:
         required: true
         description: "Full image name (e.g., cabrera/my-api)"
     secrets:
-      kubeconfig:
+      KUBECONFIG:
         description: Base64-encoded kubeconfig file
         required: true
-      k8s_secret:
+      K8S_SECRET:
         description: Base64-encoded Kubernetes secret YAML
         required: true
     outputs:
@@ -39,8 +39,8 @@ jobs:
         working-directory: k8s
         run: |
           mkdir -p ~/.kube
-          echo "${{ secrets.kubeconfig }}" | base64 -d > ~/.kube/config
-          echo "${{ secrets.k8s_secret }}" | base64 -d > secret.yaml
+          echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
+          echo "${{ secrets.K8S_SECRET }}" | base64 -d > secret.yaml
 
       - name: Install Kustomize
         working-directory: k8s

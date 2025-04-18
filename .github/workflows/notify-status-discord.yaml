@@ -20,7 +20,7 @@ on:
       url:
         type: string
     secrets:
-      discord_webhook:
+      DISCORD_WEBHOOK:
         description: Discord webhook URL
         required: true
 
@@ -50,7 +50,7 @@ jobs:
       - name: Notify Discord
         uses: cabrera-evil/discord-notify-action@1.1.8
         with:
-          webhook_url: ${{ secrets.discord_webhook }}
+          webhook_url: ${{ secrets.DISCORD_WEBHOOK }}
           title: "${{ inputs.title }} notification: ${{ github.event.repository.name }}"
           description: ${{ inputs.description }}
           color: ${{ steps.set_environment.outputs.color }}

@@ -8,13 +8,13 @@ on:
         required: true
         default: "unknown"
     secrets:
-      vercel_token:
+      VERCEL_TOKEN:
         description: The Vercel token
         required: true
-      vercel_org_id:
+      VERCEL_ORG_ID:
         description: The Vercel organization ID
         required: true
-      vercel_project_id:
+      VERCEL_PROJECT_ID:
         description: The Vercel project ID
         required: true
     outputs:
@@ -65,10 +65,10 @@ jobs:
       - name: Deploy to Vercel
         id: deployment
         env:
-          VERCEL_ORG_ID: ${{ secrets.vercel_org_id }}
-          VERCEL_PROJECT_ID: ${{ secrets.vercel_project_id }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          DEPLOY_CMD="vercel --token=${{ secrets.vercel_token }}"
+          DEPLOY_CMD="vercel --token=${{ secrets.VERCEL_TOKEN }}"
           [[ '${{ inputs.environment }}' == 'production' ]] && DEPLOY_CMD+=" --prod"
           DEPLOY_OUTPUT=$($DEPLOY_CMD --yes)
           DEPLOY_URL=$(echo "$DEPLOY_OUTPUT" | grep -oE "https?://[a-zA-Z0-9./_-]+")
