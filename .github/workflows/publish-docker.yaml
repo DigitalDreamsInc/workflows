@@ -6,7 +6,7 @@ on:
       docker_image:
         type: string
         required: true
-        description: "Full image name (e.g., cabreraevil/my-api)"
+        description: "Image name without tag and owner (e.g., my-api)"
     secrets:
       DOCKER_USERNAME:
         description: Docker Hub username
@@ -46,7 +46,7 @@ jobs:
         id: docker_meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ inputs.docker_image }}
+          images: ${{ secrets.DOCKER_USERNAME }}/${{ inputs.docker_image }}
           tags: |
             type=raw,value=latest,enable=${{ endsWith(github.ref, github.event.repository.default_branch) }}
             type=sha,value={{ github.sha }}

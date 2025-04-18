@@ -12,7 +12,7 @@ on:
       docker_image:
         type: string
         required: true
-        description: "Full image name (e.g., cabreraevil/my-api)"
+        description: "Image name without tag and owner (e.g., my-api)"
     secrets:
       KUBECONFIG:
         description: Base64-encoded kubeconfig file
@@ -52,7 +52,7 @@ jobs:
         working-directory: k8s
         run: |
           IMAGE_TAG="${{ inputs.short_sha && format('sha-{0}', inputs.short_sha) || 'latest' }}"
-          kustomize edit set image "${{ inputs.docker_image }}=${{ inputs.docker_image }}:$IMAGE_TAG"
+          kustomize edit set image "${{ secrets.DOCKER_USERNAME }}/${{ inputs.docker_image }}=${{ secrets.DOCKER_USERNAME }}/${{ inputs.docker_image }}:$IMAGE_TAG"
 
       - name: Apply Kubernetes Manifests
         id: deployment

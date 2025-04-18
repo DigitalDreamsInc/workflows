@@ -3,10 +3,6 @@ name: Deploy to Kubernetes With Helm
 on:
   workflow_call:
     inputs:
-      docker_image:
-        type: string
-        required: true
-        description: "Full image name (e.g., cabreraevil/my-api)"
       short_sha:
         type: string
         description: "The short image tag SHA (optional; defaults to latest)"
@@ -73,7 +69,6 @@ jobs:
             --namespace "${{ inputs.namespace }}-${{ inputs.environment }}" \
             --create-namespace \
             --values values.yaml \
-            --set image.repository=${{ inputs.docker_image }} \
             --set image.tag=$IMAGE_TAG
         continue-on-error: true
 
