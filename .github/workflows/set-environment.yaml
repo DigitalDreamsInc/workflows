@@ -9,7 +9,7 @@ on:
         required: true
     outputs:
       environment:
-        description: 'The deployment environment'
+        description: "Deployment environment (e.g. production, preview)"
         value: ${{ jobs.set_environment.outputs.environment }}
       short_sha:
         description: 'The short SHA of the deployment'

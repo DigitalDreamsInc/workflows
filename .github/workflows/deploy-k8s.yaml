@@ -5,7 +5,8 @@ on:
     inputs:
       environment:
         type: string
-        default: "unknown"
+        description: "Deployment environment (e.g. production, preview)"
+        required: true
       short_sha:
         type: string
       image_name:

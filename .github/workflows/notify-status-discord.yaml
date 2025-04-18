@@ -8,7 +8,8 @@ on:
         default: "A new deployment has been triggered"
       environment:
         type: string
-        default: "unknown"
+        description: "Deployment environment (e.g. production, preview)"
+        required: true
       short_sha:
         type: string
       status:

@@ -5,8 +5,8 @@ on:
     inputs:
       environment:
         type: string
+        description: "Deployment environment (e.g. production, preview)"
         required: true
-        default: "unknown"
     secrets:
       VERCEL_TOKEN:
         description: The Vercel token

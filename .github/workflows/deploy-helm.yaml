@@ -12,7 +12,8 @@ on:
         description: "The short image tag SHA (optional; defaults to latest)"
       environment:
         type: string
-        default: "unknown"
+        description: "Deployment environment (e.g. production, preview)"
+        required: true
       chart:
         type: string
         required: true
@@ -68,7 +69,7 @@ jobs:
           IMAGE_TAG="${{ inputs.short_sha && format('sha-{0}', inputs.short_sha) || 'latest' }}"
           helm upgrade --install ${{ inputs.release_name }} \
             ${{ inputs.chart }} \
-            --namespace ${{ inputs.namespace }} \
+            --namespace "${{ inputs.namespace }}-${{ inputs.environment }}" \
             --create-namespace \
             --values values.yaml \
             --set image.repository=${{ inputs.docker_image }} \

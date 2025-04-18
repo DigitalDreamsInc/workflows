@@ -5,8 +5,8 @@ on:
     inputs:
       environment:
         type: string
-        required: true
         description: "Deployment environment (e.g. production, preview)"
+        required: true
       ref:
         type: string
         required: false
