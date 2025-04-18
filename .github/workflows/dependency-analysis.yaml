@@ -1,0 +1,46 @@
+name: Static Dependency Security Analysis
+description: "Static dependency security analysis using Snyk"
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        required: true
+        description: "Branch or ref that triggered the scan"
+    secrets:
+      SNYK_TOKEN:
+        required: false
+        description: "Snyk token"
+
+jobs:
+  code_security:
+    name: Code
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install PNPM
+        run: npm install --global pnpm@latest
+
+      - name: Cache pnpm store
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Snyk - Dependency Vulnerability Check
+        uses: snyk/actions@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: test
+        continue-on-error: true

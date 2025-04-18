@@ -1,5 +1,5 @@
 name: Static Code Security Analysis
-description: "Static code security analysis using GitGuardian and Snyk"
+description: "Static code security analysis using GitGuardian"
 
 on:
   workflow_call:
@@ -22,9 +22,6 @@ on:
       GITGUARDIAN_API_KEY:
         required: true
         description: "GitGuardian API key"
-      SNYK_TOKEN:
-        required: false
-        description: "Snyk token"
 
 jobs:
   code_security:
@@ -45,11 +42,3 @@ jobs:
           GITHUB_PUSH_BASE_SHA: ${{ inputs.push_base_sha }}
           GITHUB_PULL_BASE_SHA: ${{ inputs.pull_base_sha }}
           GITHUB_DEFAULT_BRANCH: ${{ inputs.default_branch }}
-
-      - name: Snyk - Dependency Vulnerability Check
-        uses: snyk/actions@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          command: test
-        continue-on-error: true
