@@ -15,17 +15,11 @@ on:
       DOCKER_PASSWORD:
         description: Docker Hub password or token
         required: true
-    outputs:
-      latest_tag:
-        description: The latest tag of the Docker image
-        value: ${{ jobs.publish.outputs.latest_tag }}
 
 jobs:
   publish:
     name: Docker
     runs-on: ubuntu-latest
-    outputs:
-      latest_tag: ${{ steps.latest_tag.outputs.latest_tag }}
 
     steps:
       - name: Checkout repository
@@ -66,7 +60,3 @@ jobs:
           cache-to: type=gha,mode=max
           platforms: linux/amd64,linux/arm64
 
-      - name: Set Latest Tag Output
-        id: latest_tag
-        run: |
-          echo "latest_tag=$(echo '${{ steps.docker_meta.outputs.tags }}' | tr ',' '\n' | grep 'sha-')" >> $GITHUB_OUTPUT
