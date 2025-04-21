@@ -10,8 +10,13 @@ on:
         description: "Branch or ref that triggered the scan"
     secrets:
       SNYK_TOKEN:
-        required: false
+        required: true
         description: "Snyk token"
+
+permissions:
+  security-events: write # Required to upload SARIF files
+  actions: read # Required to download actions
+  contents: read # Required to checkout the code
 
 jobs:
   deps_security:
@@ -21,25 +26,22 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+
       - name: Install PNPM
         run: npm install --global pnpm@latest
 
-      - name: Cache pnpm store
-        id: cache
-        uses: actions/cache@v3
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-
       - name: Install dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
         run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - name: Snyk - Dependency Vulnerability Check
-        uses: snyk/actions@master
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/node@master
+        continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          command: test
+          args: --sarif-file-output=snyk.sarif
+
+      - name: Upload result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: snyk.sarif
