@@ -73,7 +73,6 @@ jobs:
             --create-namespace \
             --values values.yaml \
             --set image.tag=$IMAGE_TAG \
-            --debug
 
       - name: Set Deployment Status Output
         id: deployment_status
