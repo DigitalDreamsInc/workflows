@@ -74,7 +74,6 @@ jobs:
           DEPLOY_OUTPUT=$($DEPLOY_CMD --yes)
           DEPLOY_URL=$(echo "$DEPLOY_OUTPUT" | grep -oE "https?://[a-zA-Z0-9./_-]+")
           echo "url=$DEPLOY_URL" >> $GITHUB_OUTPUT
-        continue-on-error: true
 
       - name: Set Deployment Status Output
         id: deployment_status

@@ -60,7 +60,6 @@ jobs:
         working-directory: k8s
         run: |
           kustomize build . | kubectl apply -f -
-        continue-on-error: true
 
       - name: Set Deployment Status Output
         id: deployment_status
