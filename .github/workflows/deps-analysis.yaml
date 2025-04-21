@@ -14,8 +14,8 @@ on:
         description: "Snyk token"
 
 jobs:
-  code_security:
-    name: Code
+  deps_security:
+    name: Deps
     runs-on: ubuntu-latest
 
     steps:
