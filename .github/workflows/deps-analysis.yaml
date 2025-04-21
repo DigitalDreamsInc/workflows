@@ -4,10 +4,10 @@ description: "Static dependency security analysis using Snyk"
 on:
   workflow_call:
     inputs:
-      ref:
-        type: string
-        required: true
-        description: "Branch or ref that triggered the scan"
+      report:
+        type: boolean
+        description: "Whether to report the results to GitHub Code Scanning"
+        default: false
     secrets:
       SNYK_TOKEN:
         required: true
@@ -27,8 +27,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org/
+          always-auth: true
+
       - name: Install PNPM
         run: npm install --global pnpm@latest
+
+      - name: Cache pnpm store
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
@@ -43,5 +57,6 @@ jobs:
 
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3
+        if: ${{ inputs.report == 'true' }}
         with:
           sarif_file: snyk.sarif

@@ -4,10 +4,6 @@ description: "Static code security analysis using GitGuardian"
 on:
   workflow_call:
     inputs:
-      ref:
-        type: string
-        required: true
-        description: "Branch or ref that triggered the scan"
       default_branch:
         type: string
         required: true
