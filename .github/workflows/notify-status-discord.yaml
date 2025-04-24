@@ -62,7 +62,7 @@ jobs:
           # Generate title
           REPO="${{ github.event.repository.name }}"
           ENV="${{ inputs.environment }}"
-          TITLE="[$REPO] Deployment to $ENV"
+          TITLE="Deployment notification: $REPO"
 
           # Generate description
           ACTOR="${{ github.actor }}"
