@@ -4,59 +4,86 @@ description: "Notify deployment status to Discord"
 on:
   workflow_call:
     inputs:
-      description:
-        type: string
-        default: "A new deployment has been triggered"
       environment:
         type: string
         description: "Deployment environment (e.g. production, preview)"
         required: true
       short_sha:
         type: string
+        description: "Short SHA of the commit"
       status:
         type: string
         default: "unknown"
-      title:
-        type: string
-        default: "Deployment"
+        description: "Deployment status (e.g. success, failure, cancelled, skipped, in_progress)"
       url:
         type: string
+        description: "URL to the deployment or relevant resource"
     secrets:
       DISCORD_WEBHOOK:
-        description: Discord webhook URL
+        description: "Discord webhook URL"
         required: true
 
 jobs:
   notify:
-    name: Discord
+    name: Notify Discord
     runs-on: ubuntu-latest
     steps:
-      - name: Set Environment
-        id: set_environment
+      - name: Set Metadata
+        id: meta
         run: |
+          # Determine color and status text
           case "${{ inputs.status }}" in
           success)
-            echo "color=#22C55E" >> $GITHUB_OUTPUT ;;   # green-500
+            COLOR="#22C55E"
+            STATUS_TEXT="Success"
+            ;;
           failure|error)
-            echo "color=#EF4444" >> $GITHUB_OUTPUT ;;   # red-500
+            COLOR="#EF4444"
+            STATUS_TEXT="Failure"
+            ;;
           cancelled)
-            echo "color=#A78BFA" >> $GITHUB_OUTPUT ;;   # violet-400
+            COLOR="#A78BFA"
+            STATUS_TEXT="Cancelled"
+            ;;
           skipped)
-            echo "color=#FBBF24" >> $GITHUB_OUTPUT ;;   # amber-400
+            COLOR="#FBBF24"
+            STATUS_TEXT="Skipped"
+            ;;
           in_progress)
-            echo "color=#3B82F6" >> $GITHUB_OUTPUT ;;   # blue-500
+            COLOR="#3B82F6"
+            STATUS_TEXT="In Progress"
+            ;;
           *)
-            echo "color=#9CA3AF" >> $GITHUB_OUTPUT ;;   # gray-400
+            COLOR="#9CA3AF"
+            STATUS_TEXT="Unknown"
+            ;;
           esac
+
+          # Generate title
+          REPO="${{ github.event.repository.name }}"
+          ENV="${{ inputs.environment }}"
+          TITLE="[$REPO] Deployment to $ENV"
+
+          # Generate description
+          ACTOR="${{ github.actor }}"
+          DESCRIPTION="A new deployment to *${ENV}* was triggered by \`${ACTOR}\`. See commit details below."
+
+          # Output all metadata
+          echo "color=$COLOR" >> $GITHUB_OUTPUT
+          echo "status_text=$STATUS_TEXT" >> $GITHUB_OUTPUT
+          echo "title=$TITLE" >> $GITHUB_OUTPUT
+          echo "description<<EOF" >> $GITHUB_OUTPUT
+          echo "$DESCRIPTION" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Notify Discord
         uses: cabrera-evil/discord-notify-action@1.1.8
         with:
           webhook_url: ${{ secrets.DISCORD_WEBHOOK }}
-          title: "${{ inputs.title }} notification: ${{ github.event.repository.name }}"
-          description: ${{ inputs.description }}
-          color: ${{ steps.set_environment.outputs.color }}
-          status: ${{ inputs.status }}
+          title: ${{ steps.meta.outputs.title }}
+          description: ${{ steps.meta.outputs.description }}
+          color: ${{ steps.meta.outputs.color }}
+          status: ${{ steps.meta.outputs.status_text }}
           environment: ${{ inputs.environment }}
           url: ${{ inputs.url }}
           repo_name: ${{ github.event.repository.name }}
