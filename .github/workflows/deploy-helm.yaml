@@ -24,6 +24,10 @@ on:
         type: string
         required: true
         description: "Kubernetes namespace to deploy to"
+    outputs:
+      url:
+        description: "The URL of the ingress resource created by the Helm chart"
+        value: ${{ jobs.deploy.outputs.url }}
     secrets:
       KUBECONFIG:
         required: true
@@ -36,6 +40,8 @@ jobs:
   deploy:
     name: ${{ inputs.environment }}
     runs-on: ubuntu-latest
+    outputs:
+      url: ${{ steps.check.outputs.url }}
 
     steps:
       - name: Checkout repository
@@ -68,7 +74,7 @@ jobs:
             --set image.tag=$IMAGE_TAG \
 
       - name: Check Deployment Status
-        if: always()
+        id: check
         run: |
           RELEASE_NAME="${{ inputs.release_name }}"
           NAMESPACE="${{ inputs.namespace }}-${{ inputs.environment }}"
@@ -86,3 +92,20 @@ jobs:
           echo "Deployment '${DEPLOYMENT}' identified. Monitoring rollout status..."
           kubectl rollout status deployment/"$DEPLOYMENT" -n "$NAMESPACE" --timeout=5m
 
+          echo "Checking for associated Ingress resource..."
+          INGRESS=$(kubectl get ingress -n "$NAMESPACE" \
+            -l "app.kubernetes.io/instance=$RELEASE_NAME" \
+            -o jsonpath="{.items[0].metadata.name}")
+
+          if [ -n "$INGRESS" ]; then
+            echo "Ingress resource '${INGRESS}' found. Extracting URL..."
+
+            HOST=$(kubectl get ingress "$INGRESS" -n "$NAMESPACE" -o jsonpath="{.spec.rules[0].host}")
+            PATH=$(kubectl get ingress "$INGRESS" -n "$NAMESPACE" -o jsonpath="{.spec.rules[0].http.paths[0].path}")
+            [[ -z "$PATH" ]] && PATH="/"
+
+            # Save to GitHub outputs
+            echo "url=https://$HOST$PATH" >> $GITHUB_OUTPUT
+          else
+            echo "No Ingress resource found for Helm release '${RELEASE_NAME}'."
+          fi

@@ -68,5 +68,12 @@ jobs:
           DEPLOY_CMD="vercel --token=${{ secrets.VERCEL_TOKEN }}"
           [[ '${{ inputs.environment }}' == 'production' ]] && DEPLOY_CMD+=" --prod"
           DEPLOY_OUTPUT=$($DEPLOY_CMD --yes)
-          DEPLOY_URL=$(echo "$DEPLOY_OUTPUT" | grep -oE "https?://[a-zA-Z0-9./_-]+")
+          echo "$DEPLOY_OUTPUT"
+          DEPLOY_URL=$(echo "$DEPLOY_OUTPUT" | grep -oE "https?://[a-zA-Z0-9./_-]+" | tail -n 1)
+
+          if [ -z "$DEPLOY_URL" ]; then
+            echo "Failed to extract deployment URL."
+            exit 1
+          fi
+
           echo "url=$DEPLOY_URL" >> $GITHUB_OUTPUT
