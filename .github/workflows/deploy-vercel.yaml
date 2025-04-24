@@ -19,9 +19,6 @@ on:
         description: The Vercel project ID
         required: true
     outputs:
-      status:
-        description: The status of the deployment
-        value: ${{ jobs.deploy.outputs.status }}
       url:
         description: The URL of the deployment
         value: ${{ jobs.deploy.outputs.url }}
@@ -31,7 +28,6 @@ jobs:
     name: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     outputs:
-      status: ${{ steps.deployment_status.outputs.status }}
       url: ${{ steps.deployment.outputs.url }}
 
     steps:
@@ -51,7 +47,7 @@ jobs:
 
       - name: Cache pnpm store
         id: cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: node_modules
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
@@ -74,8 +70,3 @@ jobs:
           DEPLOY_OUTPUT=$($DEPLOY_CMD --yes)
           DEPLOY_URL=$(echo "$DEPLOY_OUTPUT" | grep -oE "https?://[a-zA-Z0-9./_-]+")
           echo "url=$DEPLOY_URL" >> $GITHUB_OUTPUT
-
-      - name: Set Deployment Status Output
-        id: deployment_status
-        if: always()
-        run: echo "status=${{ steps.deployment.outcome }}" >> $GITHUB_OUTPUT

@@ -31,17 +31,11 @@ on:
       HELM_VALUES:
         required: true
         description: "Base64-encoded Helm values.yaml file"
-    outputs:
-      status:
-        description: The status of the deployment
-        value: ${{ jobs.deploy.outputs.status }}
 
 jobs:
   deploy:
     name: ${{ inputs.environment }}
     runs-on: ubuntu-latest
-    outputs:
-      status: ${{ steps.deployment_status.outputs.status }}
 
     steps:
       - name: Checkout repository
@@ -73,8 +67,7 @@ jobs:
             --values values.yaml \
             --set image.tag=$IMAGE_TAG \
 
-      - name: Set Deployment Status Output
-        id: deployment_status
+      - name: Check Deployment Status
         if: always()
         run: |
           RELEASE_NAME="${{ inputs.release_name }}"
@@ -87,16 +80,9 @@ jobs:
 
           if [ -z "$DEPLOYMENT" ]; then
             echo "Error: No matching deployment found for Helm release '${RELEASE_NAME}' in namespace '${NAMESPACE}'."
-            echo "status=failure" >> $GITHUB_OUTPUT
             exit 1
           fi
 
           echo "Deployment '${DEPLOYMENT}' identified. Monitoring rollout status..."
-          if kubectl rollout status deployment/"$DEPLOYMENT" -n "$NAMESPACE" --timeout=5m; then
-            echo "Deployment '${DEPLOYMENT}' completed successfully."
-            echo "status=success" >> $GITHUB_OUTPUT
-          else
-            echo "Error: Deployment '${DEPLOYMENT}' did not complete successfully within the timeout period."
-            echo "status=failure" >> $GITHUB_OUTPUT
-          fi
+          kubectl rollout status deployment/"$DEPLOYMENT" -n "$NAMESPACE" --timeout=5m
 

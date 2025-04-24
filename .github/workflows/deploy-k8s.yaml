@@ -21,17 +21,11 @@ on:
       K8S_SECRET:
         description: Base64-encoded Kubernetes secret YAML
         required: true
-    outputs:
-      status:
-        description: The status of the deployment
-        value: ${{ jobs.deploy.outputs.status }}
 
 jobs:
   deploy:
     name: ${{ inputs.environment }}
     runs-on: ubuntu-latest
-    outputs:
-      status: ${{ steps.deployment_status.outputs.status }}
 
     steps:
       - name: Checkout repository
@@ -56,12 +50,6 @@ jobs:
           kustomize edit set image "${{ secrets.DOCKER_USERNAME }}/${{ inputs.docker_image }}=${{ secrets.DOCKER_USERNAME }}/${{ inputs.docker_image }}:$IMAGE_TAG"
 
       - name: Apply Kubernetes Manifests
-        id: deployment
         working-directory: k8s
         run: |
           kustomize build . | kubectl apply -f -
-
-      - name: Set Deployment Status Output
-        id: deployment_status
-        if: always()
-        run: echo "status=${{ steps.deployment.outcome }}" >> $GITHUB_OUTPUT
