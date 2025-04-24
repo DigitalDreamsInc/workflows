@@ -1,7 +1,6 @@
 name: Deploy to Kubernetes With Helm
 description: |
   This workflow deploys a Helm chart to a Kubernetes cluster using the provided kubeconfig and Helm values.
-  It monitors the deployment status and outputs the result.
 
 on:
   workflow_call:
@@ -42,7 +41,7 @@ jobs:
     name: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     outputs:
-      status: ${{ steps.deployment_status.outputs.result }}
+      status: ${{ steps.deployment_status.outputs.status }}
 
     steps:
       - name: Checkout repository
@@ -88,16 +87,16 @@ jobs:
 
           if [ -z "$DEPLOYMENT" ]; then
             echo "Error: No matching deployment found for Helm release '${RELEASE_NAME}' in namespace '${NAMESPACE}'."
-            echo "result=failure" >> $GITHUB_OUTPUT
+            echo "status=failure" >> $GITHUB_OUTPUT
             exit 1
           fi
 
           echo "Deployment '${DEPLOYMENT}' identified. Monitoring rollout status..."
           if kubectl rollout status deployment/"$DEPLOYMENT" -n "$NAMESPACE" --timeout=5m; then
             echo "Deployment '${DEPLOYMENT}' completed successfully."
-            echo "result=success" >> $GITHUB_OUTPUT
+            echo "status=success" >> $GITHUB_OUTPUT
           else
             echo "Error: Deployment '${DEPLOYMENT}' did not complete successfully within the timeout period."
-            echo "result=failure" >> $GITHUB_OUTPUT
+            echo "status=failure" >> $GITHUB_OUTPUT
           fi
 

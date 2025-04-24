@@ -31,7 +31,7 @@ jobs:
     name: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     outputs:
-      status: ${{ steps.deployment_status.outputs.result }}
+      status: ${{ steps.deployment_status.outputs.status }}
       url: ${{ steps.deployment.outputs.url }}
 
     steps:
@@ -78,4 +78,4 @@ jobs:
       - name: Set Deployment Status Output
         id: deployment_status
         if: always()
-        run: echo "result=${{ steps.deployment.outcome }}" >> $GITHUB_OUTPUT
+        run: echo "status=${{ steps.deployment.outcome }}" >> $GITHUB_OUTPUT
