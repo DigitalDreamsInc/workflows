@@ -25,7 +25,7 @@ on:
 
 jobs:
   notify:
-    name: Notify Discord
+    name: Discord
     runs-on: ubuntu-latest
     steps:
       - name: Set Metadata
