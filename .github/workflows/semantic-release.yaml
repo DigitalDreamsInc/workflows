@@ -4,9 +4,6 @@ description: "Automated release process using Semantic Release"
 on:
   workflow_call:
     secrets:
-      GITHUB_TOKEN:
-        description: "GitHub token for authentication"
-        required: true
       NPM_TOKEN:
         description: "NPM token for publishing packages"
         required: false
