@@ -4,7 +4,7 @@ description: "Publish package to NPM registry"
 on:
   workflow_call:
     secrets:
-      npm_token:
+      NPM_TOKEN:
         required: true
 
 jobs:
@@ -44,4 +44,4 @@ jobs:
         id: publish
         run: npm publish
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.npm_token }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
