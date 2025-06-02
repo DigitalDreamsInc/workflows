@@ -77,7 +77,7 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Notify Discord
-        uses: cabrera-evil/discord-notify-action@1.1.8
+        uses: cabrera-evil/discord-notify-action@v1.0.1
         with:
           webhook_url: ${{ secrets.DISCORD_WEBHOOK }}
           title: ${{ steps.meta.outputs.title }}
