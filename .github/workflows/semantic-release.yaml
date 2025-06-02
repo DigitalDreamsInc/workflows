@@ -52,6 +52,5 @@ jobs:
       - name: Publish release
         run: pnpm dlx semantic-release
         env:
-          HUSKY: 0
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
