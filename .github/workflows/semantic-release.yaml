@@ -49,9 +49,6 @@ jobs:
       - name: Build package
         run: pnpm build
 
-      - name: Create tarball
-        run: tar -czf dist.tar.gz dist/*
-
       - name: Publish release
         run: pnpm dlx semantic-release
         env:
