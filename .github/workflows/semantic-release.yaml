@@ -33,7 +33,7 @@ jobs:
         with:
           node-version: 22
           cache: 'pnpm'
-          registry-url: 'https://registry.npmjs.org/'
+          registry-url: https://registry.npmjs.org/
 
       - name: Cache pnpm store
         id: cache
