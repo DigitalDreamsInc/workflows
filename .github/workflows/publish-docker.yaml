@@ -1,4 +1,4 @@
-name: Publish to Docker
+name: Publish to Dockerhub
 description: "Publish Docker image to Docker Hub"
 
 on:
@@ -58,4 +58,4 @@ jobs:
           labels: ${{ steps.docker_meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          platforms: linux/amd64,linux/arm64
