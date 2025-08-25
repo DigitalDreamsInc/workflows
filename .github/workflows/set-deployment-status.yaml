@@ -1,5 +1,4 @@
 name: Set Deployment Status
-description: "Set the status of a GitHub deployment"
 
 on:
   workflow_call:

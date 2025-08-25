@@ -1,5 +1,4 @@
 name: Set Environment
-description: "Set deployment environment and metadata"
 
 on:
   workflow_call:

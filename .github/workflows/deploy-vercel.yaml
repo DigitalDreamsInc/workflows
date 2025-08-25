@@ -1,5 +1,4 @@
 name: Deploy to Vercel
-description: "Deploy to Vercel using the Vercel CLI"
 
 on:
   workflow_call:
@@ -43,7 +42,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'pnpm'
+          cache: "pnpm"
           registry-url: https://registry.npmjs.org/
 
       - name: Install Vercel CLI

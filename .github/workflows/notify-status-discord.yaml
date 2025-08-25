@@ -1,5 +1,4 @@
 name: Notify Status to Discord
-description: "Notify deployment status to Discord"
 
 on:
   workflow_call:

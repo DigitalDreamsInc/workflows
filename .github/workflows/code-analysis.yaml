@@ -1,5 +1,4 @@
 name: Static Code Security Analysis
-description: "Static code security analysis using GitGuardian"
 
 on:
   workflow_call:

@@ -1,5 +1,4 @@
 name: Container Image Security Scan
-description: "Container image security scan using Trivy"
 
 on:
   workflow_call:
@@ -7,7 +6,7 @@ on:
       image:
         required: true
         type: string
-        description: 'Docker image to scan (e.g. ghcr.io/your-org/your-image:tag)'
+        description: "Docker image to scan (e.g. ghcr.io/your-org/your-image:tag)"
 
 jobs:
   container_security:

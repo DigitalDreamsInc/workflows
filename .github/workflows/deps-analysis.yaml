@@ -1,5 +1,4 @@
 name: Static Dependency Security Analysis
-description: "Static dependency security analysis using Snyk"
 
 on:
   workflow_call:
@@ -36,7 +35,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'pnpm'
+          cache: "pnpm"
           registry-url: https://registry.npmjs.org/
 
       - name: Cache pnpm store

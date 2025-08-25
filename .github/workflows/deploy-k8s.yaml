@@ -1,5 +1,4 @@
 name: Deploy to Kubernetes
-description: "Deploy to Kubernetes using Kustomize"
 
 on:
   workflow_call:
