@@ -88,7 +88,7 @@ jobs:
           fi
 
           echo "Deployment '${DEPLOYMENT}' identified. Monitoring rollout status..."
-          kubectl rollout status deployment/"$DEPLOYMENT" -n "$NAMESPACE" --timeout=5m
+          kubectl rollout status deployment/"$DEPLOYMENT" -n "$NAMESPACE" --timeout=10m
 
           echo "Checking for associated Ingress resource..."
           INGRESS=$(kubectl get ingress -n "$NAMESPACE" \
