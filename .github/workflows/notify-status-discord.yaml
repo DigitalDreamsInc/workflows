@@ -35,13 +35,17 @@ jobs:
             COLOR="#22C55E"
             STATUS_TEXT="Success"
             ;;
-          failure|error)
+          failure)
             COLOR="#EF4444"
             STATUS_TEXT="Failure"
             ;;
           cancelled)
             COLOR="#A78BFA"
             STATUS_TEXT="Cancelled"
+            ;;
+          skipped)
+            COLOR="#FBBF24"
+            STATUS_TEXT="Skipped"
             ;;
           *)
             COLOR="#9CA3AF"
