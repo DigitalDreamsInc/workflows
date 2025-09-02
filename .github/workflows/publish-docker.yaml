@@ -42,10 +42,8 @@ jobs:
         with:
           images: ${{ secrets.DOCKER_USERNAME }}/${{ inputs.docker_image }}
           tags: |
-            type=raw,value=latest,enable=${{ endsWith(github.ref, github.event.repository.default_branch) }}
-            type=sha,value={{ github.sha }}
             type=ref,event=branch
-            type=ref,event=pr
+            type=sha,value={{ github.sha }}
             type=semver,pattern={{version}}
 
       - name: Build and Push Docker Image
