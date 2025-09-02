@@ -46,12 +46,12 @@ jobs:
 
       - name: Generate Prisma Client
         run: pnpm prisma generate
-        continue-on-error: true
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Check migration status
         run: pnpm prisma migrate status
+        continue-on-error: true
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
