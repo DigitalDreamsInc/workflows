@@ -61,6 +61,7 @@ jobs:
 | `deploy-vercel.yaml`         | Trigger Vercel deployment using token and team/project info        |
 | `deps-analysis.yaml`         | Analyze dependencies using tools like `npm audit`, `osv-scanner`   |
 | `notify-status-discord.yaml` | Send job status notifications to Discord via webhook               |
+| `prisma-migrate.yaml`        | Run Prisma database migrations                                     |
 | `publish-docker.yaml`        | Build and push Docker images to Docker Hub or GitHub Packages      |
 | `publish-npm.yaml`           | Publish JavaScript packages to NPM registry                        |
 | `register-deployment.yaml`   | Register a deployment in GitHub to be tracked in UI/metrics        |
@@ -72,4 +73,4 @@ jobs:
 
 # License
 
-This project is released under the [MIT License](https://github.com/cabrera-evil/workflows/blob/master/LICENSE).
+This project is released under the [MIT License](LICENSE).
