@@ -30,7 +30,6 @@ jobs:
       - name: Set Metadata
         id: meta
         run: |
-          # Determine color and status text
           case "${{ inputs.status }}" in
           success)
             COLOR="#22C55E"
@@ -43,14 +42,6 @@ jobs:
           cancelled)
             COLOR="#A78BFA"
             STATUS_TEXT="Cancelled"
-            ;;
-          skipped)
-            COLOR="#FBBF24"
-            STATUS_TEXT="Skipped"
-            ;;
-          in_progress)
-            COLOR="#3B82F6"
-            STATUS_TEXT="In Progress"
             ;;
           *)
             COLOR="#9CA3AF"
