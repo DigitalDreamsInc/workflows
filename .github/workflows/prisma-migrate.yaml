@@ -20,7 +20,8 @@ jobs:
     name: Deploy (${{ inputs.environment }})
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
-
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -50,25 +51,20 @@ jobs:
 
       - name: Generate Prisma Client
         run: pnpm prisma generate
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Check migration status
+        id: migration-status
         run: pnpm prisma migrate status
         continue-on-error: true
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Execute migration
+        if: steps.migration-status.outcome == 'failure'
         run: pnpm prisma migrate deploy
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Verify migration
+        if: steps.migration-status.outcome == 'failure'
         run: pnpm prisma migrate status
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Seeding Database
-        if: ${{ inputs.seed }}
+        if: ${{ inputs.seed && steps.migration-status.outcome == 'failure' }}
         run: pnpm prisma db seed
