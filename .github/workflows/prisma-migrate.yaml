@@ -6,6 +6,10 @@ on:
         type: string
         description: "Deployment environment"
         default: "production"
+      seed:
+        type: boolean
+        description: "Run Prisma seed script after applying migrations"
+        default: false
     secrets:
       DATABASE_URL:
         description: "Database connection string"
@@ -64,3 +68,7 @@ jobs:
         run: pnpm prisma migrate status
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Seeding Database
+        if: ${{ inputs.seed }}
+        run: pnpm prisma db seed
