@@ -23,6 +23,9 @@ on:
         required: true
         description: "Kubernetes namespace to deploy to"
     outputs:
+      status:
+        description: "The status of the deployment"
+        value: ${{ jobs.deploy.outputs.status }}
       url:
         description: "The URL of the ingress resource created by the Helm chart"
         value: ${{ jobs.deploy.outputs.url }}
@@ -39,6 +42,7 @@ jobs:
     name: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     outputs:
+      status: ${{ job.status }}
       url: ${{ steps.check.outputs.url }}
 
     steps:
