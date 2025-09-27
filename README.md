@@ -56,6 +56,7 @@ jobs:
 | ---------------------------- | ------------------------------------------------------------------ |
 | `code-analysis.yaml`         | Run static analysis (e.g., ESLint, TypeScript, format checks)      |
 | `container-analysis.yaml`    | Analyze Dockerfile or image vulnerabilities using Trivy            |
+| `deploy-dokploy.yaml`        | Deploy applications to servers using Dokploy webhook               |
 | `deploy-helm.yaml`           | Deploy Helm charts to Kubernetes clusters                          |
 | `deploy-k8s.yaml`            | Apply raw Kubernetes manifests using `kubectl`                     |
 | `deploy-vercel.yaml`         | Trigger Vercel deployment using token and team/project info        |

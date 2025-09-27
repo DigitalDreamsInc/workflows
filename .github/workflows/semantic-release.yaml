@@ -16,6 +16,8 @@ permissions:
 jobs:
   release:
     name: Semantic Release
+    env:
+      HUSKY: 0
     runs-on: ubuntu-latest
 
     steps:
