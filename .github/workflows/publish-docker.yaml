@@ -3,7 +3,7 @@ name: Publish to Dockerhub
 on:
   workflow_call:
     inputs:
-      docker_image:
+      label:
         type: string
         required: true
         description: "Image name without tag and owner (e.g., my-api)"
@@ -40,7 +40,7 @@ jobs:
         id: docker_meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.DOCKER_USERNAME }}/${{ inputs.docker_image }}
+          images: ${{ secrets.DOCKER_USERNAME }}/${{ inputs.label }}
           tags: |
             type=raw,value=latest,enable=${{ endsWith(github.ref, github.event.repository.default_branch) }}
             type=ref,event=branch
@@ -54,6 +54,6 @@ jobs:
           push: true
           tags: ${{ steps.docker_meta.outputs.tags }}
           labels: ${{ steps.docker_meta.outputs.labels }}
-          cache-from: type=gha
+          cache-from: type=gha,ref=${{ secrets.DOCKER_USERNAME }}/${{ inputs.label }}:latest
           cache-to: type=gha,mode=max
           platforms: linux/amd64,linux/arm64
