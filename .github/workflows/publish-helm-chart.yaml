@@ -1,0 +1,37 @@
+name: Release Charts
+
+on:
+  workflow_call:
+    inputs:
+      path:
+        type: string
+        description: The path of the resource to publish
+        default: .
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  release:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.7.0
+        with:
+          charts_dir: ${{ inputs.path }}
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"

@@ -1,0 +1,42 @@
+name: Deploy static content to Pages
+
+on:
+  workflow_call:
+    inputs:
+      path:
+        type: string
+        description: The path of the resource to publish
+        default: .
+    outputs:
+      url:
+        description: "The url of the deployed github page"
+        value: ${{ jobs.deploy.outputs.url }}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "${{ inputs.path }}"
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
