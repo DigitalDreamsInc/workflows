@@ -1,0 +1,76 @@
+name: Reusable Go CI
+
+on:
+  workflow_call:
+    inputs:
+      go-version-file:
+        description: Path to go.mod for version detection
+        required: false
+        type: string
+        default: go.mod
+      goflags:
+        description: Global GOFLAGS to apply
+        required: false
+        type: string
+        default: "-mod=readonly"
+    secrets:
+      GOPRIVATE:
+        required: false
+        description: Optional GOPRIVATE override
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GOFLAGS: ${{ inputs.goflags }}
+  GOPRIVATE: ${{ secrets.GOPRIVATE }}
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: ${{ inputs.go-version-file }}
+          cache: true
+          cache-dependency-path: go.sum
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+          args: --timeout 5m
+
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: ${{ inputs.go-version-file }}
+          cache: true
+          cache-dependency-path: go.sum
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Test
+        run: go test -race ./...
