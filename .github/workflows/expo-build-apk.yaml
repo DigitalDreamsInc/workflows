@@ -1,0 +1,120 @@
+name: Expo Build APK
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        description: Runner label or JSON array of labels
+        required: false
+        type: string
+        default: '["self-hosted"]'
+      node_version:
+        description: Node.js version
+        required: false
+        type: string
+        default: "24"
+      java_version:
+        description: Java version
+        required: false
+        type: string
+        default: "17"
+      artifact_name:
+        description: APK artifact name
+        required: false
+        type: string
+        default: app-release-apk
+      gradle_task:
+        description: Gradle task to run
+        required: false
+        type: string
+        default: :app:assembleRelease
+      gradle_init_script:
+        description: Optional Gradle init script path
+        required: false
+        type: string
+        default: ../scripts/gradle-ci.init.gradle
+      prebuild:
+        description: Run expo prebuild when android/ is missing
+        required: false
+        type: boolean
+        default: true
+      working_directory:
+        description: Android project directory
+        required: false
+        type: string
+        default: android
+      retention_days:
+        description: Artifact retention days
+        required: false
+        type: number
+        default: 14
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build_apk:
+    name: Build Android APK
+    runs-on: ${{ fromJson(inputs.runner) }}
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ inputs.node_version }}
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ inputs.java_version }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Generate Android native project
+        if: ${{ inputs.prebuild && !hashFiles('android/gradlew') }}
+        run: pnpm expo prebuild --platform android --non-interactive --no-install
+
+      - name: Build release APK
+        working-directory: ${{ inputs.working_directory }}
+        run: |
+          if [ -n "${{ inputs.gradle_init_script }}" ]; then
+            ./gradlew ${{ inputs.gradle_task }} \
+              -I "${{ inputs.gradle_init_script }}" \
+              --build-cache \
+              --configuration-cache
+          else
+            ./gradlew ${{ inputs.gradle_task }} \
+              --build-cache \
+              --configuration-cache
+          fi
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: ${{ inputs.working_directory }}/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+          retention-days: ${{ inputs.retention_days }}
