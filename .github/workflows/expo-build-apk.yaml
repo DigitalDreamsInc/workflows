@@ -7,7 +7,7 @@ on:
         description: Runner label or JSON array of labels
         required: false
         type: string
-        default: '["self-hosted"]'
+        default: "ubuntu-latest"
       node_version:
         description: Node.js version
         required: false
@@ -32,7 +32,7 @@ on:
         description: Optional Gradle init script path
         required: false
         type: string
-        default: ../scripts/gradle-ci.init.gradle
+        default: ""
       prebuild:
         description: Run expo prebuild when android/ is missing
         required: false
