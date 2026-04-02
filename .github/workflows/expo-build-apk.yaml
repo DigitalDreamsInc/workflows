@@ -7,7 +7,7 @@ on:
         description: Runner label or JSON array of labels
         required: false
         type: string
-        default: "ubuntu-latest"
+        default: '["ubuntu-latest"]'
       node_version:
         description: Node.js version
         required: false
