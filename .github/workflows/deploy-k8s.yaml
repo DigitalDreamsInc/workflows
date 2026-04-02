@@ -28,7 +28,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5.0.1
+        uses: actions/checkout@v6.0.2
 
       - name: Set up Kubernetes Config and Secret
         working-directory: k8s
