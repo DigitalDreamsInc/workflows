@@ -78,8 +78,8 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
-      - name: Enable Corepack
-        run: corepack enable
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -90,8 +90,11 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Create Android local.properties
+        run: echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
 
       - name: Generate Android native project
         if: ${{ inputs.prebuild && !hashFiles('android/gradlew') }}
@@ -103,12 +106,10 @@ jobs:
           if [ -n "${{ inputs.gradle_init_script }}" ]; then
             ./gradlew ${{ inputs.gradle_task }} \
               -I "${{ inputs.gradle_init_script }}" \
-              --build-cache \
-              --configuration-cache
+              --build-cache
           else
             ./gradlew ${{ inputs.gradle_task }} \
-              --build-cache \
-              --configuration-cache
+              --build-cache
           fi
 
       - name: Upload APK artifact
