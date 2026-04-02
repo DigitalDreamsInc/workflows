@@ -1,0 +1,48 @@
+name: Reusable GitHub Release
+
+on:
+  workflow_call:
+    inputs:
+      tag-name:
+        description: Release tag (for example v1.2.3)
+        required: true
+        type: string
+      files:
+        description: File path or newline-separated file list to attach
+        required: true
+        type: string
+    secrets:
+      github-token:
+        description: Optional token override for release creation
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Validate release inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${{ inputs.tag-name }}" ]]; then
+            echo "tag-name must not be empty" >&2
+            exit 1
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag-name }}
+          target_commitish: ${{ github.sha }}
+          files: ${{ inputs.files }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

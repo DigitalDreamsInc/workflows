@@ -1,0 +1,161 @@
+name: Reusable .NET Publish
+
+on:
+  workflow_call:
+    inputs:
+      dotnet-version:
+        description: .NET SDK version
+        required: false
+        type: string
+        default: "10.x"
+      build-configuration:
+        description: Build configuration
+        required: false
+        type: string
+        default: Release
+      project-path:
+        description: Project or solution path to publish
+        required: false
+        type: string
+        default: .
+      runtime:
+        description: Runtime identifier for publish
+        required: false
+        type: string
+        default: win-x64
+      self-contained:
+        description: Publish as self-contained executable
+        required: false
+        type: boolean
+        default: true
+      publish-single-file:
+        description: Publish as single file
+        required: false
+        type: boolean
+        default: true
+      publish-dir:
+        description: Output directory for published artifact
+        required: false
+        type: string
+        default: ""
+      artifact-name:
+        description: Published binary filename
+        required: false
+        type: string
+        default: ped-challenge-01.exe
+      tag-name:
+        description: Tag name (for example v1.2.3)
+        required: false
+        type: string
+        default: ""
+      version:
+        description: Version value for -p:Version (overrides tag-derived value)
+        required: false
+        type: string
+        default: ""
+    outputs:
+      resolved-version:
+        description: Version used for publish
+        value: ${{ jobs.publish.outputs.resolved-version }}
+      release-tag:
+        description: Resolved tag, useful for release workflows
+        value: ${{ jobs.publish.outputs.release-tag }}
+      publish-dir:
+        description: Publish directory used by the workflow
+        value: ${{ jobs.publish.outputs.publish-dir }}
+      publish-file:
+        description: Full path to published artifact file
+        value: ${{ jobs.publish.outputs.publish-file }}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    name: Publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      resolved-version: ${{ steps.meta.outputs.resolved-version }}
+      release-tag: ${{ steps.meta.outputs.release-tag }}
+      publish-dir: ${{ steps.meta.outputs.publish-dir }}
+      publish-file: ${{ steps.meta.outputs.publish-file }}
+    steps:
+      - name: Resolve version and paths
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          resolved_version="${{ inputs.version }}"
+          release_tag="${{ inputs.tag-name }}"
+
+          if [[ -z "${resolved_version}" ]]; then
+            if [[ -n "${release_tag}" ]]; then
+              resolved_version="${release_tag#v}"
+            elif [[ "${{ github.ref_type }}" == "tag" ]]; then
+              resolved_version="${GITHUB_REF_NAME#v}"
+              release_tag="${GITHUB_REF_NAME}"
+            fi
+          fi
+
+          if [[ -z "${release_tag}" && -n "${resolved_version}" ]]; then
+            release_tag="v${resolved_version}"
+          fi
+
+          publish_dir="${{ inputs.publish-dir }}"
+          if [[ -z "${publish_dir}" ]]; then
+            publish_dir="bin/publish/${{ inputs.runtime }}"
+          fi
+          publish_file="${publish_dir}/${{ inputs.artifact-name }}"
+
+          {
+            echo "resolved-version=${resolved_version}"
+            echo "release-tag=${release_tag}"
+            echo "publish-dir=${publish_dir}"
+            echo "publish-file=${publish_file}"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.2
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ inputs.dotnet-version }}
+          cache: true
+
+      - name: Publish
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cmd=(
+            dotnet publish "${{ inputs.project-path }}"
+            -c "${{ inputs.build-configuration }}"
+            -r "${{ inputs.runtime }}"
+            --self-contained "${{ inputs.self-contained }}"
+            -p:PublishSingleFile="${{ inputs.publish-single-file }}"
+            -p:EnableWindowsTargeting=true
+            -o "${{ steps.meta.outputs.publish-dir }}"
+          )
+
+          if [[ -n "${{ steps.meta.outputs.resolved-version }}" ]]; then
+            cmd+=("-p:Version=${{ steps.meta.outputs.resolved-version }}")
+          fi
+
+          "${cmd[@]}"
+
+      - name: Validate published artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          file_path="${{ steps.meta.outputs.publish-file }}"
+          if [[ ! -f "${file_path}" ]]; then
+            echo "Expected artifact not found: ${file_path}" >&2
+            exit 1
+          fi
