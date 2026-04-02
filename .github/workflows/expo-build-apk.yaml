@@ -79,7 +79,7 @@ jobs:
           cache-dependency-path: pnpm-lock.yaml
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile --ignore-scripts
+        run: pnpm install --frozen-lockfile
 
       - name: Generate Android native project
         if: ${{ inputs.prebuild && !hashFiles('android/gradlew') }}
