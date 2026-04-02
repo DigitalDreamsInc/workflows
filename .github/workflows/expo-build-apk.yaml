@@ -1,4 +1,4 @@
-name: Expo Build APK
+name: Expo APK
 
 on:
   workflow_call:
@@ -58,7 +58,7 @@ defaults:
 
 jobs:
   build_apk:
-    name: Build Android APK
+    name: Expo APK
     runs-on: ${{ fromJson(inputs.runner) }}
     timeout-minutes: 45
 
@@ -81,6 +81,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
+      - name: Generate Android native project
+        if: ${{ inputs.prebuild && !hashFiles('android/gradlew') }}
+        run: pnpm expo prebuild --platform android --non-interactive --no-install
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -95,10 +99,6 @@ jobs:
 
       - name: Create Android local.properties
         run: echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
-
-      - name: Generate Android native project
-        if: ${{ inputs.prebuild && !hashFiles('android/gradlew') }}
-        run: pnpm expo prebuild --platform android --non-interactive --no-install
 
       - name: Build release APK
         working-directory: ${{ inputs.working_directory }}
