@@ -3,6 +3,11 @@ name: Expo APK
 on:
   workflow_call:
     inputs:
+      environment:
+        type: string
+        description: "Deployment environment (e.g. production, preview)"
+        required: false
+        default: production
       runner:
         description: Runner label or JSON array of labels
         required: false
@@ -48,6 +53,10 @@ on:
         required: false
         type: number
         default: 14
+    outputs:
+      artifact_name:
+        description: Resolved APK artifact name used in upload
+        value: ${{ jobs.build_apk.outputs.artifact_name }}
 
 permissions:
   contents: read
@@ -61,6 +70,8 @@ jobs:
     name: Expo APK
     runs-on: ${{ fromJson(inputs.runner) }}
     timeout-minutes: 45
+    outputs:
+      artifact_name: ${{ steps.resolve_apk.outputs.artifact_name }}
 
     steps:
       - name: Checkout repository
@@ -100,22 +111,45 @@ jobs:
       - name: Create Android local.properties
         run: echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
 
-      - name: Build release APK
+      - name: Resolve APK variant
+        id: resolve_apk
+        run: |
+          if [ "${{ inputs.environment }}" = "production" ]; then
+            apk_variant="release"
+            apk_gradle_task=":app:assembleRelease"
+            default_artifact_name="app-release-apk"
+          else
+            apk_variant="debug"
+            apk_gradle_task=":app:assembleDebug"
+            default_artifact_name="app-debug-apk"
+          fi
+
+          apk_artifact_name="${{ inputs.artifact_name }}"
+          if [ -z "$apk_artifact_name" ] || [ "$apk_artifact_name" = "app-release-apk" ]; then
+            apk_artifact_name="$default_artifact_name"
+          fi
+
+          echo "APK_VARIANT=$apk_variant" >> "$GITHUB_ENV"
+          echo "APK_GRADLE_TASK=$apk_gradle_task" >> "$GITHUB_ENV"
+          echo "apk_variant=$apk_variant" >> "$GITHUB_OUTPUT"
+          echo "artifact_name=$apk_artifact_name" >> "$GITHUB_OUTPUT"
+
+      - name: Build APK
         working-directory: ${{ inputs.working_directory }}
         run: |
           if [ -n "${{ inputs.gradle_init_script }}" ]; then
-            ./gradlew ${{ inputs.gradle_task }} \
+            ./gradlew "$APK_GRADLE_TASK" \
               -I "${{ inputs.gradle_init_script }}" \
               --build-cache
           else
-            ./gradlew ${{ inputs.gradle_task }} \
+            ./gradlew "$APK_GRADLE_TASK" \
               --build-cache
           fi
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v7.0.0
         with:
-          name: ${{ inputs.artifact_name }}
-          path: ${{ inputs.working_directory }}/app/build/outputs/apk/release/*.apk
+          name: ${{ steps.resolve_apk.outputs.artifact_name }}
+          path: ${{ inputs.working_directory }}/app/build/outputs/apk/${{ steps.resolve_apk.outputs.apk_variant }}/*.apk
           if-no-files-found: error
           retention-days: ${{ inputs.retention_days }}
