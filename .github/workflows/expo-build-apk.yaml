@@ -53,6 +53,19 @@ on:
         required: false
         type: number
         default: 14
+    secrets:
+      ANDROID_KEYSTORE_BASE64:
+        description: Base64-encoded Android release keystore
+        required: false
+      ANDROID_KEYSTORE_PASSWORD:
+        description: Android release keystore password
+        required: false
+      ANDROID_KEY_ALIAS:
+        description: Android release key alias
+        required: false
+      ANDROID_KEY_PASSWORD:
+        description: Android release key password
+        required: false
     outputs:
       artifact_name:
         description: Resolved APK artifact name used in upload
@@ -111,6 +124,24 @@ jobs:
       - name: Create Android local.properties
         run: echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
 
+      - name: Prepare release signing
+        id: prepare_signing
+        env:
+          HAS_ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+        if: ${{ inputs.environment == 'production' && env.HAS_ANDROID_KEYSTORE == 'true' }}
+        run: |
+          keystore_dir="$RUNNER_TEMP/android-signing"
+          keystore_path="$keystore_dir/release.keystore"
+          mkdir -p "$keystore_dir"
+          printf '%s' '${{ secrets.ANDROID_KEYSTORE_BASE64 }}' | base64 --decode > "$keystore_path"
+          chmod 600 "$keystore_path"
+
+          echo "ANDROID_KEYSTORE_FILE=$keystore_path" >> "$GITHUB_ENV"
+          echo "ANDROID_KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> "$GITHUB_ENV"
+          echo "ANDROID_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> "$GITHUB_ENV"
+          echo "ANDROID_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> "$GITHUB_ENV"
+          echo "has_signing=true" >> "$GITHUB_OUTPUT"
+
       - name: Resolve APK variant
         id: resolve_apk
         run: |
@@ -137,12 +168,22 @@ jobs:
       - name: Build APK
         working-directory: ${{ inputs.working_directory }}
         run: |
+          extra_args=()
+          if [ "${{ steps.prepare_signing.outputs.has_signing }}" = "true" ]; then
+            extra_args+=("-Pandroid.injected.signing.store.file=$ANDROID_KEYSTORE_FILE")
+            extra_args+=("-Pandroid.injected.signing.store.password=$ANDROID_KEYSTORE_PASSWORD")
+            extra_args+=("-Pandroid.injected.signing.key.alias=$ANDROID_KEY_ALIAS")
+            extra_args+=("-Pandroid.injected.signing.key.password=$ANDROID_KEY_PASSWORD")
+          fi
+
           if [ -n "${{ inputs.gradle_init_script }}" ]; then
             ./gradlew "$APK_GRADLE_TASK" \
               -I "${{ inputs.gradle_init_script }}" \
+              "${extra_args[@]}" \
               --build-cache
           else
             ./gradlew "$APK_GRADLE_TASK" \
+              "${extra_args[@]}" \
               --build-cache
           fi
 
