@@ -57,14 +57,11 @@ on:
       ANDROID_KEYSTORE_BASE64:
         description: Base64-encoded Android release keystore
         required: false
-      ANDROID_KEYSTORE_PASSWORD:
-        description: Android release keystore password
-        required: false
       ANDROID_KEY_ALIAS:
         description: Android release key alias
         required: false
-      ANDROID_KEY_PASSWORD:
-        description: Android release key password
+      ANDROID_KEYSTORE_PASSWORD:
+        description: Android release keystore/key password
         required: false
     outputs:
       artifact_name:
@@ -137,9 +134,8 @@ jobs:
           chmod 600 "$keystore_path"
 
           echo "ANDROID_KEYSTORE_FILE=$keystore_path" >> "$GITHUB_ENV"
-          echo "ANDROID_KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> "$GITHUB_ENV"
           echo "ANDROID_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> "$GITHUB_ENV"
-          echo "ANDROID_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> "$GITHUB_ENV"
+          echo "ANDROID_KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> "$GITHUB_ENV"
           echo "has_signing=true" >> "$GITHUB_OUTPUT"
 
       - name: Resolve APK variant
@@ -173,7 +169,7 @@ jobs:
             extra_args+=("-Pandroid.injected.signing.store.file=$ANDROID_KEYSTORE_FILE")
             extra_args+=("-Pandroid.injected.signing.store.password=$ANDROID_KEYSTORE_PASSWORD")
             extra_args+=("-Pandroid.injected.signing.key.alias=$ANDROID_KEY_ALIAS")
-            extra_args+=("-Pandroid.injected.signing.key.password=$ANDROID_KEY_PASSWORD")
+            extra_args+=("-Pandroid.injected.signing.key.password=$ANDROID_KEYSTORE_PASSWORD")
           fi
 
           if [ -n "${{ inputs.gradle_init_script }}" ]; then
