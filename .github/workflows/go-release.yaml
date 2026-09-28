@@ -18,10 +18,22 @@ on:
         required: false
         type: string
         default: "release --clean"
+      svu-version:
+        description: Pinned svu release to install for version tagging
+        required: false
+        type: string
+        default: "v3.4.1"
     secrets:
       GOPRIVATE:
         required: false
         description: Optional GOPRIVATE override
+    outputs:
+      tag:
+        description: The computed next tag (equal to the current tag when nothing warranted a release)
+        value: ${{ jobs.tag.outputs.tag }}
+      released:
+        description: "true if a new tag was created and GoReleaser ran"
+        value: ${{ jobs.tag.outputs.created }}
 
 permissions:
   contents: write
@@ -35,7 +47,17 @@ env:
   GOPRIVATE: ${{ secrets.GOPRIVATE }}
 
 jobs:
+  tag:
+    name: Tag
+    uses: ./.github/workflows/semver-tag.yaml
+    with:
+      svu-version: ${{ inputs.svu-version }}
+    secrets: inherit
+
   goreleaser:
+    name: GoReleaser
+    needs: [tag]
+    if: needs.tag.outputs.created == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:

@@ -1,0 +1,73 @@
+name: Reusable Semver Tag
+
+on:
+  workflow_call:
+    inputs:
+      svu-version:
+        description: Pinned svu release to install (https://github.com/caarlos0/svu/releases)
+        required: false
+        type: string
+        default: "v3.4.1"
+    outputs:
+      tag:
+        description: The computed next tag (equal to the current tag when nothing warrants a release)
+        value: ${{ jobs.tag.outputs.next }}
+      created:
+        description: "true if a new tag was created and pushed"
+        value: ${{ jobs.tag.outputs.created }}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.job }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tag:
+    name: Tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      next: ${{ steps.version.outputs.next }}
+      created: ${{ steps.version.outputs.current != steps.version.outputs.next }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Install svu
+        env:
+          SVU_TAG: ${{ inputs.svu-version }}
+        run: |
+          set -euo pipefail
+          SVU_VERSION="${SVU_TAG#v}"
+          ASSET="svu_${SVU_VERSION}_linux_amd64.tar.gz"
+          BASE_URL="https://github.com/caarlos0/svu/releases/download/${SVU_TAG}"
+          curl -sSfL "${BASE_URL}/${ASSET}" -o svu.tar.gz
+          curl -sSfL "${BASE_URL}/checksums.txt" -o checksums.txt
+          grep " ${ASSET}\$" checksums.txt | sha256sum -c -
+          tar -xzf svu.tar.gz svu
+          install -m 0755 svu /usr/local/bin/svu
+          rm -f svu.tar.gz svu checksums.txt
+
+      - name: Determine next version
+        id: version
+        run: |
+          set -euo pipefail
+          CURRENT=$(svu current 2>/dev/null || echo "v0.0.0")
+          NEXT=$(svu next)
+          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+          echo "next=$NEXT" >> "$GITHUB_OUTPUT"
+
+      - name: Create and push tag
+        if: steps.version.outputs.current != steps.version.outputs.next
+        env:
+          NEXT_VERSION: ${{ steps.version.outputs.next }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$NEXT_VERSION" -m "$NEXT_VERSION"
+          git push origin "$NEXT_VERSION"
