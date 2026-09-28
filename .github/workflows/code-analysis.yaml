@@ -30,7 +30,7 @@ jobs:
           fetch-depth: 0
 
       - name: GitGuardian - Secrets Detection
-        uses: GitGuardian/ggshield/actions/secret@v1.52.2
+        uses: GitGuardian/ggshield/actions/secret@v1.55.0
         env:
           GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
           GITHUB_PUSH_BEFORE_SHA: ${{ inputs.push_before_sha }}
