@@ -38,10 +38,6 @@ on:
 permissions:
   contents: write
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.job }}-${{ github.ref }}
-  cancel-in-progress: true
-
 env:
   GOFLAGS: ${{ inputs.goflags }}
   GOPRIVATE: ${{ secrets.GOPRIVATE }}
