@@ -1,0 +1,77 @@
+name: Reusable Go Semantic Release
+
+on:
+  workflow_call:
+    inputs:
+      go-version-file:
+        description: Path to go.mod for version detection
+        required: false
+        type: string
+        default: go.mod
+      allow-initial-development-versions:
+        description: Start the first release at v0.1.0 instead of v1.0.0
+        required: false
+        type: boolean
+        default: true
+      prerelease:
+        description: Flag the release as a prerelease
+        required: false
+        type: boolean
+        default: false
+      dry-run:
+        description: Compute the next version and run the GoReleaser hook without creating a tag or GitHub release
+        required: false
+        type: boolean
+        default: false
+      custom-arguments:
+        description: Extra arguments passed directly to the semantic-release CLI
+        required: false
+        type: string
+        default: ""
+    outputs:
+      version:
+        description: The released semantic version, without the leading v (empty if no release was made)
+        value: ${{ jobs.release.outputs.version }}
+      changelog:
+        description: The generated release changelog
+        value: ${{ jobs.release.outputs.changelog }}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+      changelog: ${{ steps.release.outputs.changelog }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v7.0.0
+        with:
+          go-version-file: ${{ inputs.go-version-file }}
+          cache: true
+          cache-dependency-path: go.sum
+
+      - name: Release
+        id: release
+        uses: go-semantic-release/action@v1.24.1
+        with:
+          hooks: goreleaser
+          allow-initial-development-versions: ${{ inputs.allow-initial-development-versions }}
+          prerelease: ${{ inputs.prerelease }}
+          dry: ${{ inputs.dry-run }}
+          custom-arguments: ${{ inputs.custom-arguments }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
