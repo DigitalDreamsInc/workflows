@@ -41,12 +41,12 @@ jobs:
           SVU_VERSION="${SVU_TAG#v}"
           ASSET="svu_${SVU_VERSION}_linux_amd64.tar.gz"
           BASE_URL="https://github.com/caarlos0/svu/releases/download/${SVU_TAG}"
-          curl -sSfL "${BASE_URL}/${ASSET}" -o svu.tar.gz
+          curl -sSfL "${BASE_URL}/${ASSET}" -o "${ASSET}"
           curl -sSfL "${BASE_URL}/checksums.txt" -o checksums.txt
           grep " ${ASSET}\$" checksums.txt | sha256sum -c -
-          tar -xzf svu.tar.gz svu
+          tar -xzf "${ASSET}" svu
           install -m 0755 svu /usr/local/bin/svu
-          rm -f svu.tar.gz svu checksums.txt
+          rm -f "${ASSET}" svu checksums.txt
 
       - name: Determine next version
         id: version
