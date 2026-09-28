@@ -19,16 +19,24 @@ on:
         type: boolean
         default: false
       dry-run:
-        description: Compute the next version and run the GoReleaser hook without creating a tag or GitHub release
+        description: Compute the next version without creating a tag or GitHub release
         required: false
         type: boolean
         default: false
+      hooks:
+        description: Enable hooks plugins for semantic-release (e.g. "goreleaser"). Left empty by default since hooks-goreleaser's vendored GoReleaser can lag the current .goreleaser.yml schema; prefer chaining a dedicated goreleaser-action job on this workflow's `released`/`version` outputs instead.
+        required: false
+        type: string
+        default: ""
       custom-arguments:
         description: Extra arguments passed directly to the semantic-release CLI
         required: false
         type: string
         default: ""
     outputs:
+      released:
+        description: "true if a new version was released"
+        value: ${{ jobs.release.outputs.released }}
       version:
         description: The released semantic version, without the leading v (empty if no release was made)
         value: ${{ jobs.release.outputs.version }}
@@ -40,7 +48,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.job }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -49,6 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     outputs:
+      released: ${{ steps.release.outputs.version != '' }}
       version: ${{ steps.release.outputs.version }}
       changelog: ${{ steps.release.outputs.changelog }}
     steps:
@@ -68,7 +77,7 @@ jobs:
         id: release
         uses: go-semantic-release/action@v1.24.1
         with:
-          hooks: goreleaser
+          hooks: ${{ inputs.hooks }}
           allow-initial-development-versions: ${{ inputs.allow-initial-development-versions }}
           prerelease: ${{ inputs.prerelease }}
           dry: ${{ inputs.dry-run }}
