@@ -63,6 +63,9 @@ on:
       ANDROID_KEYSTORE_PASSWORD:
         description: Android release keystore/key password
         required: false
+      APP_ENV:
+        description: Base64-encoded .env file baked into the APK (public values only)
+        required: false
     outputs:
       artifact_name:
         description: Resolved APK artifact name used in upload
@@ -101,6 +104,14 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Write app .env
+        env:
+          APP_ENV: ${{ secrets.APP_ENV }}
+        run: |
+          if [ -n "$APP_ENV" ]; then
+            printf '%s' "$APP_ENV" | base64 -d > .env
+          fi
 
       - name: Generate Android native project
         if: ${{ inputs.prebuild && !hashFiles('android/gradlew') }}
